@@ -120,7 +120,7 @@ const Profile = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>M-Pesa Phone Number (For STK Push)</label>
+                        <label>M-Pesa Phone Number</label>
                         <input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+254 7XX XXX XXX" required />
                     </div>
 
