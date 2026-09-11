@@ -24,7 +24,7 @@ const MyBookings = () => {
             try {
                 const token = localStorage.getItem('token');
                 const res = await fetch('http://localhost:5000/api/traveler/bookings', {
-                    headers: { 'Authorization': \Bearer \\ }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
                     const json = await res.json();
@@ -74,9 +74,9 @@ const MyBookings = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(\http://localhost:5000/api/traveler/bookings/\/download\, {
+            const res = await fetch(`http://localhost:5000/api/traveler/bookings/${booking.id}/download`, {
                 method: 'POST',
-                headers: { 'Authorization': \Bearer \\ }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (res.ok) {
@@ -204,7 +204,7 @@ const MyBookings = () => {
                                                 {booking.status === 'confirmed' && (
                                                     <>
                                                         <button
-                                                            className={\tn btn-sm \\}
+                                                            className={`btn btn-sm ${booking.is_downloaded ? 'btn-secondary' : 'btn-primary'}`}
                                                             onClick={() => handleDownloadTicket(booking)}
                                                             title="Download Digital Pass"
                                                             disabled={booking.is_downloaded}

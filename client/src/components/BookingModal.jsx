@@ -52,7 +52,7 @@ const BookingModal = ({ event, reel, onClose, onBookingCompleted }) => {
                 user
             });
 
-            showNotification(\Payment received! Booking ref: \\, 'success');
+            showNotification(`Payment received! Booking ref: ${booking.ticketCode}`, 'success');
             setConfirmedBooking(booking);
             if (onBookingCompleted) {
                 onBookingCompleted(booking);
@@ -117,7 +117,7 @@ const BookingModal = ({ event, reel, onClose, onBookingCompleted }) => {
                         <span className="checkout-badge">{activeEvent.category}</span>
                         <h2>{activeEvent.title}</h2>
                         <div className="checkout-location-time">
-                            <span><FaCalendarAlt /> {activeEvent.startDate} • {activeEvent.time || 'TBA'}</span>
+                            <span><FaCalendarAlt /> {activeEvent.startDate} â€¢ {activeEvent.time || 'TBA'}</span>
                             <span><FaMapMarkerAlt /> {activeEvent.venue || activeEvent.location}</span>
                         </div>
                     </div>
@@ -163,16 +163,16 @@ const BookingModal = ({ event, reel, onClose, onBookingCompleted }) => {
                                     return (
                                         <div
                                             key={tier.id}
-                                            className={\	ier-card-option \ \\}
+                                            className={`tier-card-option ${isSelected ? 'selected' : ''} ${!isAvailable ? 'disabled' : ''}`}
                                             onClick={() => isAvailable && setSelectedTierId(tier.id)}
                                         >
                                             <div className="tier-info">
                                                 <span className="tier-name">{tier.name}</span>
                                                 {tier.perks && (
-                                                    <span className="tier-perks">{tier.perks.join(' • ')}</span>
+                                                    <span className="tier-perks">{tier.perks.join(' â€¢ ')}</span>
                                                 )}
                                                 <span className="tier-stock-hint">
-                                                    {isAvailable ? \\ tickets available\ : 'Sold out'}
+                                                    {isAvailable ? `${tier.available} tickets available` : 'Sold out'}
                                                 </span>
                                             </div>
                                             <div className="tier-price-tag">
@@ -264,7 +264,7 @@ const BookingModal = ({ event, reel, onClose, onBookingCompleted }) => {
                             <div className="checkout-total-block">
                                 <span className="summary-label">Total Amount</span>
                                 <span className="summary-price">Ksh {subtotal.toLocaleString()}</span>
-                                <span className="summary-breakdown">{quantity} × Ksh {selectedTier?.price?.toLocaleString()}</span>
+                                <span className="summary-breakdown">{quantity} Ã— Ksh {selectedTier?.price?.toLocaleString()}</span>
                             </div>
 
                             <button

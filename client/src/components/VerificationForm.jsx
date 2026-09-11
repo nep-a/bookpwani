@@ -19,8 +19,6 @@ const VerificationForm = ({ onVerified }) => {
         setLoading(true);
         
         try {
-            // In a real app, this would be a multipart/form-data fetch to the backend
-            // Mocking for now to match current frontend architecture
             const token = localStorage.getItem('token');
             const formDataToSend = new FormData();
             formDataToSend.append('businessName', formData.businessName);
@@ -30,11 +28,10 @@ const VerificationForm = ({ onVerified }) => {
 
             let apiUrl = 'http://localhost:5000/api/host/verify';
             
-            // Try actual backend, fallback to local state if it fails (due to dummy token)
             try {
                 const res = await fetch(apiUrl, {
                     method: 'POST',
-                    headers: { 'Authorization': \Bearer \\ },
+                    headers: { 'Authorization': `Bearer ${token}` },
                     body: formDataToSend
                 });
                 if (res.ok) {

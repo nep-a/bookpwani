@@ -41,9 +41,9 @@ const Profile = () => {
             if (avatarFile) formData.append('profilePic', avatarFile);
 
             const rolePath = user?.role === 'host' ? 'host' : 'traveler';
-            const res = await fetch(\http://localhost:5000/api/\/profile\, {
+            const res = await fetch(`http://localhost:5000/api/${rolePath}/profile`, {
                 method: 'PUT',
-                headers: { 'Authorization': \Bearer \\ },
+                headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
             });
 
