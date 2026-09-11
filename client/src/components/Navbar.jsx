@@ -17,7 +17,7 @@ import {
 import BookPwaniLogo from './BookPwaniLogo';
 
 const Navbar = () => {
-    const { user, logout, switchDemoUser } = useContext(AuthContext);
+    const { user, logout } = useContext(AuthContext);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [searchValue, setSearchValue] = useState('');
     const navigate = useNavigate();

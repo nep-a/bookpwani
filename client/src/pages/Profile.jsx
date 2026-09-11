@@ -67,7 +67,7 @@ const Profile = () => {
                 setUser(updatedUser);
                 localStorage.setItem('zuru_current_user', JSON.stringify(updatedUser));
                 localStorage.setItem('user', JSON.stringify(updatedUser));
-                showNotification('Profile updated (Demo Mode)', 'success');
+                showNotification('Profile updated', 'success');
             }
         } catch (error) {
             showNotification('Error updating profile: ' + error.message, 'error');

@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
-import { eventService, DEMO_USERS } from '../services/eventService';
+import { eventService } from '../services/eventService';
 
 export const AuthContext = createContext();
 
@@ -13,13 +13,10 @@ export const AuthProvider = ({ children }) => {
             try {
                 setUser(JSON.parse(storedUser));
             } catch {
-                setUser(DEMO_USERS[0]);
+                setUser(null);
             }
         } else {
-            // Default to Attendee demo user so the app is immediately ready to browse & book
-            setUser(DEMO_USERS[1]);
-            localStorage.setItem('zuru_current_user', JSON.stringify(DEMO_USERS[1]));
-            localStorage.setItem('token', 'tok_demo_attendee');
+            setUser(null);
         }
         setLoading(false);
     }, []);
@@ -53,14 +50,6 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const switchDemoUser = (role) => {
-        const target = DEMO_USERS.find(u => u.role === role) || DEMO_USERS[1];
-        localStorage.setItem('token', `tok_demo_${target.role}`);
-        localStorage.setItem('zuru_current_user', JSON.stringify(target));
-        localStorage.setItem('user', JSON.stringify(target));
-        setUser(target);
-    };
-
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('zuru_current_user');
@@ -69,9 +58,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, login, register, logout, switchDemoUser, loading }}>
+        <AuthContext.Provider value={{ user, setUser, login, register, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
 };
-

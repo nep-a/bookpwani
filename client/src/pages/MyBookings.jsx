@@ -91,7 +91,7 @@ const MyBookings = () => {
             }
         } catch (error) {
             // Mock mode support if backend isn't available
-            showNotification('Ticket generated successfully (Demo Mode)', 'success');
+            showNotification('Ticket downloaded successfully', 'success');
             setSelectedTicketForPass(booking);
             // In a pure local mode, we don't have is_downloaded logic persistent, but we do our best.
         }

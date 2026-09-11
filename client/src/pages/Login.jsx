@@ -7,7 +7,7 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const { login, switchDemoUser } = useContext(AuthContext);
+    const { login } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -19,11 +19,6 @@ const Login = () => {
         } else {
             setError(res.message);
         }
-    };
-
-    const handleDemoLogin = (role) => {
-        switchDemoUser(role);
-        navigate('/');
     };
 
     return (

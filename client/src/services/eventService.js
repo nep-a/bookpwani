@@ -1,4 +1,4 @@
-// Coastal Kenya Tourism Experience & Booking Service
+﻿// Coastal Kenya Tourism Experience & Booking Service
 // Categories: Culture, Food, Stays, Beach, and Safaris
 // Powered by LocalStorage for resilient offline persistence
 
@@ -34,7 +34,7 @@ export const COASTAL_DESTINATIONS = [
     'Shimba Hills / Tsavo'
 ];
 
-export const DEMO_USERS = [
+export const INITIAL_USERS = [
     {
         id: 'usr_organizer_pwani',
         username: 'Pwani Escapes & Tours',
@@ -146,7 +146,7 @@ const INITIAL_COASTAL_EXPERIENCES = [
         },
         ticketTiers: [
             { id: 'tier_f1_dinner', name: 'Sunset Dinner Cruise', price: 5500, available: 32, total: 60, perks: ['Welcome Tamarind Dawa cocktail', '4-course fresh seafood dinner', 'Live acoustic band performance'] },
-            { id: 'tier_f1_champagne', name: 'Champagne Captain’s Deck', price: 9500, available: 8, total: 12, perks: ['Private forward deck seating', 'Chilled Moët Champagne bottle', 'Caviar & lobster canapés'] }
+            { id: 'tier_f1_champagne', name: 'Champagne Captainâ€™s Deck', price: 9500, available: 8, total: 12, perks: ['Private forward deck seating', 'Chilled MoÃ«t Champagne bottle', 'Caviar & lobster canapÃ©s'] }
         ],
         likesCount: 275,
         viewsCount: 3820,
@@ -270,7 +270,7 @@ const INITIAL_COASTAL_EXPERIENCES = [
     {
         id: 'cst_8',
         title: 'Diani Beach Kitesurfing & Coral Sandbank Adventure',
-        description: 'Voted Africa’s leading beach destination! Catch the trade winds with certified IKO instructors in the shallow turquoise lagoons of Galu, followed by a boat ride to Robinson Crusoe Sandbank for fresh tropical fruits and chilled coconut water.',
+        description: 'Voted Africaâ€™s leading beach destination! Catch the trade winds with certified IKO instructors in the shallow turquoise lagoons of Galu, followed by a boat ride to Robinson Crusoe Sandbank for fresh tropical fruits and chilled coconut water.',
         category: 'Beach',
         location: 'Diani Beach',
         venue: 'Galu Kinondo Beach & Robinson Sandbank, Diani',
@@ -390,7 +390,7 @@ function initStorage() {
         localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(INITIAL_COASTAL_BOOKINGS));
     }
     if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
-        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEMO_USERS));
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(INITIAL_USERS));
     }
     if (!localStorage.getItem(STORAGE_KEYS.LIKES)) {
         localStorage.setItem(STORAGE_KEYS.LIKES, JSON.stringify({}));

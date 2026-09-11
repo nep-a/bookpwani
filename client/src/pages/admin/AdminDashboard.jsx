@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { eventService, DEMO_USERS } from '../../services/eventService';
+import { eventService } from '../../services/eventService';
 import { useNotification } from '../../context/NotificationContext';
 import {
     FaTicketAlt,
