@@ -1,4 +1,5 @@
-﻿import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { eventService } from '../services/eventService';
 import EventCard from '../components/EventCard';
@@ -119,10 +120,16 @@ const FeaturedCarousel = ({ events, onBook, onSelectDetails }) => {
 
 const Home = () => {
     const { user } = useContext(AuthContext);
+    const location = useLocation();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: '', category: 'all' });
     
+    useEffect(() => {
+        const query = new URLSearchParams(location.search).get('q') || '';
+        setFilters(prev => ({ ...prev, search: query }));
+    }, [location.search]);
+
     const [selectedEventForDetails, setSelectedEventForDetails] = useState(null);
     const [selectedEventForBooking, setSelectedEventForBooking] = useState(null);
 
