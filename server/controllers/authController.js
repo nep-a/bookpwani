@@ -1,31 +1,47 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const supabase = require('../config/supabase');
 
 const register = async (req, res) => {
     try {
         const { username, email, password, role } = req.body;
         
-        // Mock DB: Check if user exists
-        // const existingUser = await db.query('SELECT * FROM users WHERE email = ', [email]);
-        // if (existingUser.rows.length > 0) return res.status(400).json({ message: 'User already exists' });
+        const { data: existingUser, error: checkError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
+            
+        if (checkError && checkError.code !== 'PGRST116') {
+            return res.status(500).json({ message: 'Database error', error: checkError.message });
+        }
+        if (existingUser) return res.status(400).json({ message: 'User already exists' });
         
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // Mock DB: Insert user
-        const mockUser = {
-            id: 'mock_id_' + Date.now(),
-            username,
-            email,
-            role: role || 'traveler'
-        };
+        const { data: newUser, error: insertError } = await supabase
+            .from('users')
+            .insert([{
+                username,
+                email,
+                password: hashedPassword,
+                role: role || 'traveler'
+            }])
+            .select()
+            .single();
+
+        if (insertError) {
+             return res.status(500).json({ message: 'Error saving user', error: insertError.message });
+        }
 
         const token = jwt.sign(
-            { id: mockUser.id, role: mockUser.role },
+            { id: newUser.id, role: newUser.role },
             process.env.JWT_SECRET || 'fallback_secret',
             { expiresIn: '1d' }
         );
 
-        res.status(201).json({ user: mockUser, token });
+        delete newUser.password;
+        res.status(201).json({ user: newUser, token });
     } catch (error) {
         res.status(500).json({ message: 'Error registering user', error: error.message });
     }
@@ -35,25 +51,29 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         
-        // Mock DB: Fetch user
-        // const user = await db.query('SELECT * FROM users WHERE email = ', [email]);
-        // if (!user) return res.status(400).json({ message: 'Invalid credentials' });
-        // const isMatch = await bcrypt.compare(password, user.password);
+        const { data: user, error: fetchError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
 
-        // Dummy successful login
-        const mockUser = {
-            id: 'mock_id_123',
-            email,
-            role: email.includes('host') ? 'host' : 'traveler'
-        };
+        if (fetchError || !user) {
+             return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+             return res.status(400).json({ message: 'Invalid credentials' });
+        }
 
         const token = jwt.sign(
-            { id: mockUser.id, role: mockUser.role },
+            { id: user.id, role: user.role },
             process.env.JWT_SECRET || 'fallback_secret',
             { expiresIn: '1d' }
         );
 
-        res.status(200).json({ user: mockUser, token });
+        delete user.password;
+        res.status(200).json({ user, token });
     } catch (error) {
         res.status(500).json({ message: 'Error logging in', error: error.message });
     }
