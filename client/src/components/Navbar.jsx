@@ -157,20 +157,6 @@ const Navbar = () => {
                                 </Link>
                             )}
 
-                            {/* Demo role switcher pill */}
-                            <div className="demo-role-switch">
-                                <span className="role-tag-pill">{user.role}</span>
-                                <select
-                                    aria-label="Switch Demo Persona"
-                                    value={user.role}
-                                    onChange={(e) => switchDemoUser(e.target.value)}
-                                    className="role-select-inline"
-                                    title="Quick switch demo roles"
-                                >
-                                    <option value="host">Host</option>
-                                </select>
-                            </div>
-
                             {/* Avatar + logout */}
                             <div className="nav-user-item">
                                 <Link to="/profile" className="nav-profile-link">
@@ -244,7 +230,6 @@ const Navbar = () => {
                                     )}
                                     <div className="mobile-user-info">
                                         <strong>{user.username}</strong>
-                                        <span className="mobile-user-role">{user.role === 'host' ? 'Host / Guide' : user.role}</span>
                                     </div>
                                 </div>
                             )}
@@ -281,23 +266,6 @@ const Navbar = () => {
                                         <Link to="/profile" className="mobile-nav-item" onClick={handleLinkClick}>
                                             <FaUser /> Account Profile
                                         </Link>
-
-                                        {/* Mobile Role Switcher */}
-                                        <div className="mobile-role-box">
-                                            <span className="mobile-role-title">Switch Persona (Demo)</span>
-                                            <div className="mobile-role-pills">
-                                                {['host'].map(role => (
-                                                    <button
-                                                        key={role}
-                                                        type="button"
-                                                        className={`role-pill-btn ${user.role === role ? 'active' : ''}`}
-                                                        onClick={() => { switchDemoUser(role); setMobileOpen(false); }}
-                                                    >
-                                                        {role.charAt(0).toUpperCase() + role.slice(1)}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
 
                                         <button onClick={handleLogout} className="mobile-logout-btn">
                                             <FaSignOutAlt /> Sign Out
