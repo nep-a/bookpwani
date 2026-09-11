@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { eventService } from '../services/eventService';
 import EditEventModal from '../components/EditEventModal';
+import VerificationForm from '../components/VerificationForm';
 import {
     FaTicketAlt,
     FaMoneyBillWave,
@@ -66,6 +67,12 @@ const Dashboard = () => {
             showNotification('Failed to delete event', 'error');
         }
     };
+
+    const isVerified = user?.verification_details !== null && user?.verification_details !== undefined;
+
+    if (!isVerified) {
+        return <VerificationForm onVerified={() => loadOrganizerData()} />;
+    }
 
     return (
         <div className="container" style={{ marginTop: '90px', paddingBottom: '70px' }}>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { eventService, COASTAL_CATEGORIES, COASTAL_DESTINATIONS } from '../services/eventService';
+import VerificationForm from '../components/VerificationForm';
 import { FaPlus, FaImage, FaCalendarAlt, FaMapMarkerAlt, FaTicketAlt, FaTag, FaFileAlt } from 'react-icons/fa';
 
 const PRESET_COASTAL_IMAGES = [
@@ -87,6 +88,12 @@ const CreateEvent = () => {
     };
 
     const validDestinations = COASTAL_DESTINATIONS.filter(d => d !== 'All Destinations');
+
+    const isVerified = user?.verification_details !== null && user?.verification_details !== undefined;
+
+    if (!isVerified) {
+        return <VerificationForm onVerified={() => navigate('/dashboard')} />;
+    }
 
     return (
         <div className="container" style={{ paddingTop: '100px', paddingBottom: '80px' }}>

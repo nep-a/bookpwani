@@ -11,5 +11,5 @@ router.put('/profile', upload.single('profilePic'), hostController.updateProfile
 router.post('/events', upload.single('eventImage'), hostController.createEvent);
 router.put('/events/:id', hostController.updateEvent);
 router.get('/events', hostController.getEvents);
-
+router.post('/verify', upload.single('passportFile'), hostController.submitVerification);
 module.exports = router;

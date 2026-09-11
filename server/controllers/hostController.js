@@ -93,4 +93,32 @@ const getEvents = async (req, res) => {
     }
 };
 
-module.exports = { updateProfile, createEvent, updateEvent, getEvents };
+const submitVerification = async (req, res) => {
+    try {
+        const { businessName, ownerId, staffPhone } = req.body;
+        const passportFile = req.file ? req.file.path : null;
+
+        const verificationData = JSON.stringify({
+            businessName,
+            ownerId,
+            staffPhone,
+            passportFile
+        });
+
+        const { data: updatedHost, error } = await supabase
+            .from('users')
+            .update({ verification_details: verificationData })
+            .eq('id', req.user.id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        
+        delete updatedHost.password;
+        res.status(200).json({ message: 'Verification submitted successfully', host: updatedHost });
+    } catch (error) {
+        res.status(500).json({ message: 'Error submitting verification', error: error.message });
+    }
+};
+
+module.exports = { updateProfile, createEvent, updateEvent, getEvents, submitVerification };
