@@ -2081,3 +2081,223 @@ body {
     flex: 1;
   }
 }
+/* -- Landscape Digital Ticket -- */
+.digital-ticket-modal-landscape {
+  max-width: 750px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.digital-ticket-modal-landscape .close-btn {
+  top: -40px;
+  right: 0;
+  color: white;
+}
+
+.landscape-ticket {
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  position: relative;
+  min-height: 250px;
+}
+
+/* Left Stub */
+.ticket-left-stub {
+  width: 200px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-right: 2px dashed transparent;
+  position: relative;
+  z-index: 2;
+}
+.stub-brand {
+  font-weight: 800;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+.stub-qr {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 15px;
+}
+.stub-code {
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #2d3748;
+}
+.security-notice {
+  font-size: 0.75rem;
+  color: #718096;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+}
+
+/* Divider Cutout */
+.ticket-cutout {
+  width: 30px;
+  position: relative;
+  background: white;
+  z-index: 3;
+}
+.dashed-cutline {
+  position: absolute;
+  top: 15px;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 2px dashed #cbd5e0;
+}
+.notch {
+  width: 30px;
+  height: 30px;
+  background: rgba(0,0,0,0.5); /* matches modal overlay */
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+}
+.top-notch {
+  top: -15px;
+}
+.bottom-notch {
+  bottom: -15px;
+}
+
+/* Main Body */
+.ticket-main-body {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #0f172a;
+  color: white;
+}
+.ticket-bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+.ticket-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.7) 100%);
+}
+.ticket-content-wrapper {
+  position: relative;
+  z-index: 2;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.ticket-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.ticket-tier-badge {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ticket-event-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 30px 0;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.ticket-event-details-row {
+  display: flex;
+  gap: 40px;
+  margin-top: auto;
+}
+.detail-item {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+.detail-icon {
+  background: rgba(255,255,255,0.1);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+.detail-text strong {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #cbd5e0;
+  margin-bottom: 5px;
+}
+.detail-text p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-ticket, #printable-ticket * {
+    visibility: visible;
+  }
+  #printable-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    transform: scale(1);
+    box-shadow: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .ticket-modal-actions {
+    display: none;
+  }
+  .notch {
+    background: white; /* matches paper color */
+  }
+  .modal-overlay {
+    background: transparent;
+  }
+}
+
