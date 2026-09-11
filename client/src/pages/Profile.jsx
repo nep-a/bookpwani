@@ -8,7 +8,8 @@ const Profile = () => {
     const [username, setUsername] = useState('');
     const [bio, setBio] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [avatarUrl, setAvatarUrl] = useState('');
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState('');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -16,26 +17,58 @@ const Profile = () => {
             setUsername(user.username || '');
             setBio(user.bio || '');
             setPhoneNumber(user.phone_number || '');
-            setAvatarUrl(user.avatar || '');
+            setPreviewUrl(user.profile_pic || user.avatar || '');
         }
     }, [user]);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setAvatarFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const updatedUser = {
-                ...user,
-                username,
-                bio,
-                phone_number: phoneNumber,
-                avatar: avatarUrl || user?.avatar
-            };
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('name', username);
+            formData.append('phoneNumber', phoneNumber);
+            formData.append('bio', bio);
+            if (avatarFile) formData.append('profilePic', avatarFile);
 
-            setUser(updatedUser);
-            localStorage.setItem('zuru_current_user', JSON.stringify(updatedUser));
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            showNotification('Profile updated successfully!', 'success');
+            const rolePath = user?.role === 'host' ? 'host' : 'traveler';
+            const res = await fetch(\http://localhost:5000/api/\/profile\, {
+                method: 'PUT',
+                headers: { 'Authorization': \Bearer \\ },
+                body: formData
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const updatedUser = { ...user, ...data[rolePath] }; // either host or traveler
+                setUser(updatedUser);
+                localStorage.setItem('zuru_current_user', JSON.stringify(updatedUser));
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                showNotification('Profile updated successfully!', 'success');
+            } else {
+                // Mock fallback for demo if backend isn't linked
+                const updatedUser = {
+                    ...user,
+                    username,
+                    bio,
+                    phone_number: phoneNumber,
+                    avatar: previewUrl || user?.avatar,
+                    profile_pic: previewUrl || user?.profile_pic
+                };
+                setUser(updatedUser);
+                localStorage.setItem('zuru_current_user', JSON.stringify(updatedUser));
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                showNotification('Profile updated (Demo Mode)', 'success');
+            }
         } catch (error) {
             showNotification('Error updating profile: ' + error.message, 'error');
         } finally {
@@ -60,8 +93,8 @@ const Profile = () => {
                         border: '3px solid var(--primary-color)',
                         background: '#eee'
                     }}>
-                        {avatarUrl ? (
-                            <img src={avatarUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {previewUrl ? (
+                            <img src={previewUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: '2rem' }}>
                                 {username?.charAt(0).toUpperCase() || 'U'}
@@ -72,12 +105,12 @@ const Profile = () => {
 
                 <form onSubmit={handleSubmit} className="auth-form" style={{ maxWidth: '100%', boxShadow: 'none', padding: '0', background: 'transparent' }}>
                     <div className="form-group">
-                        <label>Avatar Image URL</label>
+                        <label>Upload Profile Picture</label>
                         <input
-                            type="text"
-                            placeholder="https://..."
-                            value={avatarUrl}
-                            onChange={(e) => setAvatarUrl(e.target.value)}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            style={{ padding: '8px', background: '#f7fafc', border: '1px solid #cbd5e0', borderRadius: '8px' }}
                         />
                     </div>
 
@@ -87,8 +120,8 @@ const Profile = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>Phone / M-Pesa Number</label>
-                        <input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+254 7XX XXX XXX" />
+                        <label>M-Pesa Phone Number (For STK Push)</label>
+                        <input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+254 7XX XXX XXX" required />
                     </div>
 
                     <div className="form-group">

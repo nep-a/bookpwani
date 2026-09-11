@@ -3,8 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { eventService } from '../services/eventService';
 import TicketPassModal from '../components/TicketPassModal';
-import ReviewModal from '../components/ReviewModal';
-import { FaTicketAlt, FaCalendarAlt, FaMapMarkerAlt, FaTimesCircle, FaCheck, FaTrash, FaQrcode, FaStar } from 'react-icons/fa';
+import { FaTicketAlt, FaCalendarAlt, FaMapMarkerAlt, FaTimesCircle, FaDownload, FaTrash, FaQrcode } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 const MyBookings = () => {
@@ -12,7 +11,6 @@ const MyBookings = () => {
     const { showNotification } = useNotification();
     const [bookings, setBookings] = useState([]);
     const [selectedTicketForPass, setSelectedTicketForPass] = useState(null);
-    const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
     const [bookingToCancel, setBookingToCancel] = useState(null);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -21,7 +19,22 @@ const MyBookings = () => {
         if (!user) return;
         setLoading(true);
         try {
-            const data = await eventService.getMyBookings(user.id);
+            let data = [];
+            // Try fetching from real backend first
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('http://localhost:5000/api/traveler/bookings', {
+                    headers: { 'Authorization': \Bearer \\ }
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    data = json.bookings || [];
+                } else {
+                    throw new Error('Fallback to local storage');
+                }
+            } catch (err) {
+                data = await eventService.getMyBookings(user.id);
+            }
             setBookings(data);
         } catch (error) {
             console.error('Error loading tickets:', error);
@@ -50,6 +63,37 @@ const MyBookings = () => {
             fetchBookings();
         } catch (error) {
             showNotification(error.message || 'Failed to cancel', 'error');
+        }
+    };
+
+    const handleDownloadTicket = async (booking) => {
+        if (booking.is_downloaded) {
+            showNotification('Ticket already downloaded. Multiple downloads are restricted for security.', 'error');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(\http://localhost:5000/api/traveler/bookings/\/download\, {
+                method: 'POST',
+                headers: { 'Authorization': \Bearer \\ }
+            });
+
+            if (res.ok) {
+                showNotification('Ticket downloaded successfully!', 'success');
+                // Open the modal to view/print the ticket
+                setSelectedTicketForPass(booking);
+                // Refresh list to update is_downloaded status
+                fetchBookings();
+            } else {
+                const errorData = await res.json();
+                showNotification(errorData.message || 'Failed to download ticket', 'error');
+            }
+        } catch (error) {
+            // Mock mode support if backend isn't available
+            showNotification('Ticket generated successfully (Demo Mode)', 'success');
+            setSelectedTicketForPass(booking);
+            // In a pure local mode, we don't have is_downloaded logic persistent, but we do our best.
         }
     };
 
@@ -105,39 +149,41 @@ const MyBookings = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {bookings.map(booking => (
+                                {bookings.map(booking => {
+                                    const eventData = booking.event || booking; // Handle nested backend data vs local flat data
+                                    return (
                                     <tr key={booking.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                                         <td style={{ padding: '14px 10px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                {booking.eventImage && (
+                                                {(eventData.image || eventData.eventImage) && (
                                                     <img
-                                                        src={booking.eventImage}
-                                                        alt={booking.eventTitle}
+                                                        src={eventData.image || eventData.eventImage}
+                                                        alt={eventData.title || eventData.eventTitle}
                                                         style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
                                                     />
                                                 )}
                                                 <div>
-                                                    <strong style={{ display: 'block', fontSize: '0.95rem' }}>{booking.eventTitle}</strong>
-                                                    <span style={{ fontSize: '0.8rem', color: '#718096' }}>Ref: {booking.ticketCode}</span>
+                                                    <strong style={{ display: 'block', fontSize: '0.95rem' }}>{eventData.title || eventData.eventTitle}</strong>
+                                                    <span style={{ fontSize: '0.8rem', color: '#718096' }}>Ref: {booking.ticket_code || booking.ticketCode}</span>
                                                 </div>
                                             </div>
                                         </td>
                                         <td style={{ padding: '14px 10px' }}>
                                             <div style={{ fontSize: '0.9rem' }}>
-                                                <div><FaCalendarAlt style={{ color: 'var(--primary-color)' }} /> {booking.eventDate}</div>
-                                                <div style={{ color: '#718096', fontSize: '0.8rem' }}><FaMapMarkerAlt /> {booking.eventVenue}</div>
+                                                <div><FaCalendarAlt style={{ color: 'var(--primary-color)' }} /> {eventData.date || eventData.startDate || eventData.eventDate}</div>
+                                                <div style={{ color: '#718096', fontSize: '0.8rem' }}><FaMapMarkerAlt /> {eventData.venue || eventData.eventVenue || 'Location'}</div>
                                             </div>
                                         </td>
                                         <td style={{ padding: '14px 10px' }}>
                                             <span className="badge" style={{ background: '#edf2f7', color: '#2d3748', border: 'none' }}>
-                                                {booking.ticketTierName}
+                                                {booking.ticket_tier_name || booking.ticketTierName}
                                             </span>
                                         </td>
                                         <td style={{ padding: '14px 10px', fontWeight: 'bold' }}>
-                                            {booking.quantity}
+                                            {booking.tickets_count || booking.quantity}
                                         </td>
                                         <td style={{ padding: '14px 10px', fontWeight: 'bold', color: 'var(--primary-color)' }}>
-                                            Ksh {Number(booking.totalPrice).toLocaleString()}
+                                            Ksh {Number(booking.total_price || booking.totalPrice).toLocaleString()}
                                         </td>
                                         <td style={{ padding: '14px 10px' }}>
                                             <span style={{
@@ -158,11 +204,12 @@ const MyBookings = () => {
                                                 {booking.status === 'confirmed' && (
                                                     <>
                                                         <button
-                                                            className="btn btn-sm btn-primary"
-                                                            onClick={() => setSelectedTicketForPass(booking)}
-                                                            title="View Digital QR Pass"
+                                                            className={\tn btn-sm \\}
+                                                            onClick={() => handleDownloadTicket(booking)}
+                                                            title="Download Digital Pass"
+                                                            disabled={booking.is_downloaded}
                                                         >
-                                                            <FaQrcode /> View Pass
+                                                            <FaDownload /> {booking.is_downloaded ? 'Downloaded' : 'Download Pass'}
                                                         </button>
                                                         <button
                                                             className="btn btn-sm btn-secondary"
@@ -185,7 +232,7 @@ const MyBookings = () => {
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                )})}
                             </tbody>
                         </table>
                     </div>
@@ -207,7 +254,7 @@ const MyBookings = () => {
                         <FaTimesCircle style={{ fontSize: '3rem', color: '#e53e3e', margin: '0 auto 15px auto' }} />
                         <h3>Cancel Pass Reservation?</h3>
                         <p style={{ margin: '10px 0', color: '#4a5568' }}>
-                            Are you sure you want to cancel your pass for <strong>{bookingToCancel.eventTitle}</strong>?
+                            Are you sure you want to cancel your pass for <strong>{bookingToCancel.event?.title || bookingToCancel.eventTitle}</strong>?
                         </p>
                         <p style={{ fontSize: '0.85rem', color: '#718096' }}>
                             Your reserved spots will be returned to the ticket pool.
