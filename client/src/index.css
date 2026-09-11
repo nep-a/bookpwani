@@ -2301,3 +2301,102 @@ body {
   }
 }
 
+
+/* Mobile E-commerce Card Grid Layout */
+@media (max-width: 768px) {
+  .events-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px;
+  }
+  
+  .event-card-media {
+    height: 140px;
+  }
+  
+  .event-card-content {
+    padding: 10px 12px;
+  }
+  
+  .event-title {
+    font-size: 0.9rem;
+    line-height: 1.3;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+  }
+  
+  .event-organizer-row {
+    display: none; /* Hide organizer on mobile to save space */
+  }
+  
+  .event-meta-row {
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  
+  .event-meta-item {
+    font-size: 0.75rem;
+  }
+  
+  .event-card-desc {
+    display: none; /* Hide description */
+  }
+  
+  .event-card-footer {
+    padding-top: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .event-price-val {
+    font-size: 1rem;
+  }
+  
+  .event-card-footer .btn {
+    padding: 8px;
+    font-size: 0.85rem;
+    justify-content: center;
+  }
+  
+  .event-date-badge {
+    top: 8px;
+    left: 8px;
+    padding: 4px 8px;
+  }
+  
+  .event-card-top-actions {
+    top: 8px;
+    right: 8px;
+    gap: 4px;
+  }
+  
+  .event-icon-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+  
+  .featured-carousel-container {
+    height: 300px !important;
+  }
+  
+  .featured-carousel-container h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .carousel-content {
+    bottom: 15px !important;
+    left: 15px !important;
+    right: 15px !important;
+  }
+  
+  .carousel-content .btn {
+    padding: 8px 16px !important;
+    font-size: 0.9rem !important;
+  }
+}
