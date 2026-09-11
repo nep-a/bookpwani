@@ -168,7 +168,6 @@ const Navbar = () => {
                                     title="Quick switch demo roles"
                                 >
                                     <option value="host">Host</option>
-                                    <option value="admin">Admin</option>
                                 </select>
                             </div>
 
@@ -287,7 +286,7 @@ const Navbar = () => {
                                         <div className="mobile-role-box">
                                             <span className="mobile-role-title">Switch Persona (Demo)</span>
                                             <div className="mobile-role-pills">
-                                                {['host', 'admin'].map(role => (
+                                                {['host'].map(role => (
                                                     <button
                                                         key={role}
                                                         type="button"

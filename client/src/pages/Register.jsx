@@ -36,7 +36,7 @@ const Register = () => {
         );
         setLoading(false);
         if (res.success) {
-            showNotification(`Welcome to ZuruEvents, ${formData.username}!`, 'success');
+            showNotification(`Welcome to bookpwani, ${formData.username}!`, 'success');
             navigate('/');
         } else {
             setError(res.message);
@@ -50,7 +50,7 @@ const Register = () => {
                     <div className="logo-badge" style={{ margin: '0 auto 10px auto', width: '48px', height: '48px' }}>
                         <FaTicketAlt style={{ color: 'white', fontSize: '1.4rem' }} />
                     </div>
-                    <h2>Join ZuruEvents</h2>
+                    <h2>Join bookpwani</h2>
                     <p style={{ color: '#718096', fontSize: '0.9rem' }}>
                         Create an account to book event passes or publish experiences.
                     </p>

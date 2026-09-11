@@ -28,7 +28,7 @@ const markAsRead = async (req, res) => {
             .single();
 
         if (error) throw error;
-        res.status(200).json({ message: \Notification \ marked as read\, notification: updatedNotif });
+        res.status(200).json({ message: `Notification ${id} marked as read`, notification: updatedNotif });
     } catch (error) {
         res.status(500).json({ message: 'Error updating notification', error: error.message });
     }

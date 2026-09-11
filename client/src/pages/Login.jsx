@@ -33,7 +33,7 @@ const Login = () => {
                     <div className="logo-badge" style={{ margin: '0 auto 10px auto', width: '48px', height: '48px' }}>
                         <FaTicketAlt style={{ color: 'white', fontSize: '1.4rem' }} />
                     </div>
-                    <h2>Welcome to ZuruEvents</h2>
+                    <h2>Welcome to bookpwani</h2>
                     <p style={{ color: '#718096', fontSize: '0.9rem' }}>
                         Sign in to access your digital tickets and manage events.
                     </p>
@@ -67,17 +67,7 @@ const Login = () => {
                             </div>
                         </button>
 
-                        <button
-                            type="button"
-                            className="demo-login-btn admin-demo"
-                            onClick={() => handleDemoLogin('admin')}
-                        >
-                            <FaShieldAlt />
-                            <div>
-                                <strong>Admin View</strong>
-                                <span>System oversight & logs</span>
-                            </div>
-                        </button>
+                        {/* Admin demo button removed per requirements */}
                     </div>
                 </div>
 
@@ -92,7 +82,7 @@ const Login = () => {
                         <label>Email Address</label>
                         <input
                             type="email"
-                            placeholder="e.g. attendee@zuruevents.com"
+                            placeholder="e.g. attendee@bookpwani.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required

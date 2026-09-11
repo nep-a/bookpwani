@@ -99,7 +99,7 @@ const BookPwaniLogo = ({ size = 'md', showText = true, className = '' }) => {
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent'
                         }}>
-                            Pwani
+                            bookpwani
                         </span>
                     </div>
                     <span style={{

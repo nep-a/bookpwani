@@ -15,7 +15,7 @@ const Footer = () => {
                     <Link to="/" style={{ color: '#495057', textDecoration: 'none' }}>Home</Link>
                 </div>
                 <p style={{ color: '#6c757d', margin: 0, fontSize: '0.9rem' }}>
-                    &copy; {new Date().getFullYear()} VisitTour. All rights reserved.
+                    &copy; {new Date().getFullYear()} bookpwani. All rights reserved.
                 </p>
             </div>
         </footer>

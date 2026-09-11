@@ -20,7 +20,7 @@ const TicketPassModal = ({ booking, onClose }) => {
                     <div className="ticket-header">
                         <div className="ticket-brand">
                             <span className="brand-dot" />
-                            <h3>ZuruEvents</h3>
+                            <h3>bookpwani</h3>
                         </div>
                         <span className="ticket-status-pill confirmed">
                             <FaCheckCircle /> Confirmed Pass
