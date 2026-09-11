@@ -1,86 +1,324 @@
-import { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useContext, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FaPlus, FaUser, FaSignOutAlt } from 'react-icons/fa';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import {
+    FaPlus,
+    FaSignOutAlt,
+    FaCalendarCheck,
+    FaBars,
+    FaTimes,
+    FaUser,
+    FaShieldAlt,
+    FaUserTie,
+    FaSearch,
+    FaCompass,
+    FaTachometerAlt
+} from 'react-icons/fa';
+import BookPwaniLogo from './BookPwaniLogo';
 
 const Navbar = () => {
-    const { user, logout } = useContext(AuthContext);
+    const { user, logout, switchDemoUser } = useContext(AuthContext);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [searchValue, setSearchValue] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+    const searchRef = useRef(null);
+
+    // Sync search input with URL ?q= param
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        setSearchValue(params.get('q') || '');
+    }, [location.search]);
+
+    // Auto close mobile menu on route change
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [location.pathname]);
+
+    // Close on Escape key
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') setMobileOpen(false);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    // Prevent body scroll when mobile menu open
+    useEffect(() => {
+        document.body.style.overflow = mobileOpen ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    }, [mobileOpen]);
 
     const handleLogout = () => {
         logout();
+        setMobileOpen(false);
         navigate('/login');
     };
 
+    const handleLinkClick = () => setMobileOpen(false);
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        const q = searchValue.trim();
+        // Navigate to home with search query param
+        navigate(q ? `/?q=${encodeURIComponent(q)}` : '/');
+        setMobileOpen(false);
+    };
+
+    const handleSearchClear = () => {
+        setSearchValue('');
+        navigate('/');
+        searchRef.current?.focus();
+    };
+
     return (
-        <nav>
-            <Link to="/" style={{ textDecoration: 'none' }}>
-                <h1>ZuruSasa</h1>
-            </Link>
-            <ul>
-                {user ? (
-                    <>
-                        {/* Host Links */}
-                        {user.role === 'host' && (
-                            <>
-                                <li>
-                                    <Link to="/upload" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 16px' }}>
-                                        <FaPlus /> <span className="nav-text">Upload</span>
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link to="/dashboard" className="nav-link">Dashboard</Link>
-                                </li>
-                            </>
-                        )}
+        <nav className="navbar-fixed">
+            <div className="nav-container">
 
-                        {/* Admin Links */}
-                        {user.role === 'admin' && (
-                            <li>
-                                <Link to="/admin" className="nav-link" style={{ color: '#e53e3e', fontWeight: 'bold' }}>Admin Panel</Link>
-                            </li>
-                        )}
+                {/* ── Brand Logo ── */}
+                <Link
+                    to="/"
+                    className="brand-logo"
+                    onClick={handleLinkClick}
+                    style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                >
+                    <BookPwaniLogo size="md" />
+                </Link>
 
-                        {/* Sales/Marketing Links */}
-                        {['sales', 'marketing'].includes(user.role) && (
-                            <li>
-                                <Link to="/admin" className="nav-link" style={{ color: '#e53e3e', fontWeight: 'bold' }}>Admin Panel</Link>
-                            </li>
-                        )}
-
-                        {/* Traveler Links */}
-                        {user.role === 'traveler' && (
-                            <li>
-                                <Link to="/my-bookings" className="nav-link">My Bookings</Link>
-                            </li>
-                        )}
-                        <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'inherit' }}>
-                                {user.profile_picture ? (
-                                    <img
-                                        src={`${API_URL}${user.profile_picture}`}
-                                        alt={user.username}
-                                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-color)' }}
-                                    />
-                                ) : (
-                                    <span className="nav-text"><FaUser /></span>
-                                )}
-                                <span className="nav-text">{user.username}</span>
-                            </Link>
-                            <button onClick={handleLogout} className="btn" style={{ background: 'transparent', color: 'var(--text-color)', padding: '5px' }}>
-                                <FaSignOutAlt />
+                {/* ── Centre: Search Bar (desktop) ── */}
+                <form
+                    className="nav-search-form desktop-only"
+                    onSubmit={handleSearchSubmit}
+                    role="search"
+                    aria-label="Search experiences"
+                >
+                    <div className="nav-search-wrap">
+                        <FaSearch className="nav-search-icon" />
+                        <input
+                            ref={searchRef}
+                            type="search"
+                            className="nav-search-input"
+                            placeholder="Search experiences, dhows, safaris…"
+                            value={searchValue}
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            aria-label="Search experiences"
+                        />
+                        {searchValue && (
+                            <button
+                                type="button"
+                                className="nav-search-clear"
+                                onClick={handleSearchClear}
+                                aria-label="Clear search"
+                            >
+                                <FaTimes />
                             </button>
-                        </li>
-                    </>
-                ) : (
-                    <>
-                        <li><Link to="/login" className="nav-link">Login</Link></li>
-                        <li><Link to="/register" className="btn btn-primary">Sign Up</Link></li>
-                    </>
-                )}
-            </ul>
+                        )}
+                    </div>
+                    <button type="submit" className="nav-search-btn">
+                        Explore
+                    </button>
+                </form>
+
+                {/* ── Right: Actions ── */}
+                <div className="nav-actions desktop-only">
+                    {user ? (
+                        <>
+                            {/* My Bookings — traveler */}
+                            {user.role === 'traveler' && (
+                                <Link to="/my-bookings" className="nav-action-link">
+                                    <FaCalendarCheck />
+                                    <span>My Bookings</span>
+                                </Link>
+                            )}
+
+                            {/* Host links */}
+                            {user.role === 'host' && (
+                                <>
+                                    <Link to="/my-bookings" className="nav-action-link">
+                                        <FaCalendarCheck />
+                                        <span>My Bookings</span>
+                                    </Link>
+                                    <Link to="/dashboard" className="nav-action-link">
+                                        <FaTachometerAlt />
+                                        <span>Dashboard</span>
+                                    </Link>
+                                    <Link to="/create-event" className="btn btn-primary btn-sm">
+                                        <FaPlus /> Post
+                                    </Link>
+                                </>
+                            )}
+
+                            {/* Admin */}
+                            {user.role === 'admin' && (
+                                <Link to="/admin" className="nav-action-link admin-link">
+                                    <FaShieldAlt />
+                                    <span>Admin</span>
+                                </Link>
+                            )}
+
+                            {/* Demo role switcher pill */}
+                            <div className="demo-role-switch">
+                                <span className="role-tag-pill">{user.role}</span>
+                                <select
+                                    aria-label="Switch Demo Persona"
+                                    value={user.role}
+                                    onChange={(e) => switchDemoUser(e.target.value)}
+                                    className="role-select-inline"
+                                    title="Quick switch demo roles"
+                                >
+                                    <option value="host">Host</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+
+                            {/* Avatar + logout */}
+                            <div className="nav-user-item">
+                                <Link to="/profile" className="nav-profile-link">
+                                    {user.avatar ? (
+                                        <img src={user.avatar} alt={user.username} className="nav-avatar" />
+                                    ) : (
+                                        <div className="host-avatar-placeholder" style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>
+                                            {user.username?.charAt(0).toUpperCase() || 'U'}
+                                        </div>
+                                    )}
+                                    <span className="nav-username">{user.username}</span>
+                                </Link>
+                                <button onClick={handleLogout} className="btn-icon-nav" title="Log Out">
+                                    <FaSignOutAlt />
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login" className="nav-action-link">Login</Link>
+                            <Link to="/register" className="btn btn-primary btn-sm">Sign Up</Link>
+                        </>
+                    )}
+                </div>
+
+                {/* ── Mobile Hamburger ── */}
+                <button
+                    className="mobile-menu-toggle"
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                    aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                    aria-expanded={mobileOpen}
+                >
+                    {mobileOpen ? <FaTimes /> : <FaBars />}
+                </button>
+            </div>
+
+            {/* ── Mobile Drawer ── */}
+            {mobileOpen && (
+                <>
+                    <div className="mobile-nav-backdrop" onClick={() => setMobileOpen(false)} />
+                    <div className="mobile-nav-drawer">
+                        <div className="mobile-nav-content">
+
+                            {/* Mobile Search */}
+                            <form className="mobile-search-form" onSubmit={handleSearchSubmit}>
+                                <div className="mobile-search-wrap">
+                                    <FaSearch className="mobile-search-icon" />
+                                    <input
+                                        type="search"
+                                        className="mobile-search-input"
+                                        placeholder="Search experiences…"
+                                        value={searchValue}
+                                        onChange={(e) => setSearchValue(e.target.value)}
+                                        aria-label="Search experiences"
+                                    />
+                                </div>
+                                <button type="submit" className="btn btn-primary" style={{ padding: '10px 18px' }}>
+                                    <FaSearch />
+                                </button>
+                            </form>
+
+                            {/* User card when logged in */}
+                            {user && (
+                                <div className="mobile-user-card">
+                                    {user.avatar ? (
+                                        <img src={user.avatar} alt={user.username} className="mobile-user-avatar" />
+                                    ) : (
+                                        <div className="host-avatar-placeholder" style={{ width: '42px', height: '42px', fontSize: '1.1rem' }}>
+                                            {user.username?.charAt(0).toUpperCase() || 'U'}
+                                        </div>
+                                    )}
+                                    <div className="mobile-user-info">
+                                        <strong>{user.username}</strong>
+                                        <span className="mobile-user-role">{user.role === 'host' ? 'Host / Guide' : user.role}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="mobile-nav-links">
+                                <Link to="/" className="mobile-nav-item" onClick={handleLinkClick}>
+                                    <FaCompass /> Explore Coast
+                                </Link>
+
+                                {user ? (
+                                    <>
+                                        {/* My Bookings — available to all logged-in roles */}
+                                        <Link to="/my-bookings" className="mobile-nav-item" onClick={handleLinkClick}>
+                                            <FaCalendarCheck /> My Bookings
+                                        </Link>
+
+                                        {user.role === 'host' && (
+                                            <>
+                                                <Link to="/create-event" className="mobile-nav-item highlight-btn" onClick={handleLinkClick}>
+                                                    <FaPlus /> Post Experience
+                                                </Link>
+                                                <Link to="/dashboard" className="mobile-nav-item" onClick={handleLinkClick}>
+                                                    <FaUserTie /> Host Dashboard
+                                                </Link>
+                                            </>
+                                        )}
+
+                                        {user.role === 'admin' && (
+                                            <Link to="/admin" className="mobile-nav-item admin-item" onClick={handleLinkClick}>
+                                                <FaShieldAlt /> Admin Panel
+                                            </Link>
+                                        )}
+
+                                        <Link to="/profile" className="mobile-nav-item" onClick={handleLinkClick}>
+                                            <FaUser /> Account Profile
+                                        </Link>
+
+                                        {/* Mobile Role Switcher */}
+                                        <div className="mobile-role-box">
+                                            <span className="mobile-role-title">Switch Persona (Demo)</span>
+                                            <div className="mobile-role-pills">
+                                                {['host', 'admin'].map(role => (
+                                                    <button
+                                                        key={role}
+                                                        type="button"
+                                                        className={`role-pill-btn ${user.role === role ? 'active' : ''}`}
+                                                        onClick={() => { switchDemoUser(role); setMobileOpen(false); }}
+                                                    >
+                                                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <button onClick={handleLogout} className="mobile-logout-btn">
+                                            <FaSignOutAlt /> Sign Out
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="mobile-auth-actions">
+                                        <Link to="/login" className="btn btn-secondary" onClick={handleLinkClick} style={{ width: '100%' }}>
+                                            Login
+                                        </Link>
+                                        <Link to="/register" className="btn btn-primary" onClick={handleLinkClick} style={{ width: '100%' }}>
+                                            Sign Up
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </nav>
     );
 };

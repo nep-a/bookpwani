@@ -1,155 +1,209 @@
-import { useState, useEffect, useContext, useCallback, useRef } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useContext, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import ReelCard from '../components/ReelCard';
+import EventCard from '../components/EventCard';
 import BookingModal from '../components/BookingModal';
-import CustomSelect from '../components/CustomSelect';
-import { FaSearch, FaRedo, FaUmbrellaBeach, FaPaw, FaHotel, FaUtensils, FaLandmark } from 'react-icons/fa';
+import EventDetailsModal from '../components/EventDetailsModal';
+import { eventService, COASTAL_CATEGORIES } from '../services/eventService';
+import {
+    FaLandmark,
+    FaUtensils,
+    FaHotel,
+    FaUmbrellaBeach,
+    FaPaw,
+    FaCompass,
+    FaWater,
+    FaTicketAlt,
+    FaStar
+} from 'react-icons/fa';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const CATEGORY_ICONS = {
+    'all': <FaCompass />,
+    'Culture': <FaLandmark />,
+    'Food': <FaUtensils />,
+    'Stays': <FaHotel />,
+    'Beach': <FaUmbrellaBeach />,
+    'Safaris': <FaPaw />
+};
 
 const Home = () => {
-    const [reels, setReels] = useState([]);
-    const [selectedReel, setSelectedReel] = useState(null);
+    const [events, setEvents] = useState([]);
+    const [selectedEventForBooking, setSelectedEventForBooking] = useState(null);
+    const [selectedEventForDetails, setSelectedEventForDetails] = useState(null);
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
-    const [filters, setFilters] = useState({
-        search: '',
-        location: '',
-        category: '',
-        minPrice: '',
-        maxPrice: ''
-    });
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-    const [loading, setLoading] = useState(false);
-    const loadingRef = useRef(false);
+    const [searchParams] = useSearchParams();
 
-    const fetchReels = useCallback(async (pageNum, reset = false) => {
-        if (loadingRef.current) return;
-        loadingRef.current = true;
+    const [filters, setFilters] = useState({
+        search: searchParams.get('q') || '',
+        category: 'all',
+    });
+
+    const [loading, setLoading] = useState(false);
+
+    // Sync search filter whenever URL ?q= changes (typed from Navbar)
+    useEffect(() => {
+        const q = searchParams.get('q') || '';
+        setFilters(prev => ({ ...prev, search: q }));
+    }, [searchParams]);
+
+    const fetchEvents = useCallback(async () => {
         setLoading(true);
         try {
-            const params = new URLSearchParams({ ...filters, page: pageNum, limit: 5 }).toString();
-            const res = await axios.get(`${API_URL}/api/reels?${params}`);
-
-            if (reset) {
-                setReels(res.data);
-            } else {
-                setReels(prev => {
-                    const newReels = res.data.filter(newReel => !prev.some(existing => existing.id === newReel.id));
-                    return [...prev, ...newReels];
-                });
-            }
-
-            setHasMore(res.data.length === 5);
+            const data = await eventService.getEvents(filters);
+            setEvents(data);
         } catch (error) {
-            console.error('Error fetching reels:', error);
+            console.error('Error fetching coastal experiences:', error);
         } finally {
             setLoading(false);
-            loadingRef.current = false;
         }
     }, [filters]);
 
-    // Initial load and filter changes
     useEffect(() => {
-        setPage(1);
-        fetchReels(1, true);
-    }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
+        fetchEvents();
+    }, [fetchEvents]);
 
-    // Toggle mobile view class
-    useEffect(() => {
-        document.body.classList.add('mobile-reels-view');
-        return () => {
-            document.body.classList.remove('mobile-reels-view');
-        };
-    }, []);
-
-    // Infinite scroll
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 100) {
-                if (hasMore && !loading) {
-                    setPage(prev => {
-                        const nextPage = prev + 1;
-                        fetchReels(nextPage, false);
-                        return nextPage;
-                    });
-                }
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [hasMore, loading, fetchReels]);
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        setPage(1);
-        fetchReels(1, true);
+    const handleReset = () => {
+        navigate('/');
+        setFilters({ search: '', category: 'all' });
     };
 
-    const handleRefresh = () => {
-        setPage(1);
-        fetchReels(1, true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const handleCategoryClick = (catId) => {
+        setFilters(prev => ({ ...prev, category: catId }));
     };
 
-    const handleChange = (e) => {
-        setFilters({ ...filters, [e.target.name]: e.target.value });
-    };
-
-    const handleBookClick = (reel) => {
+    const handleBookClick = (event) => {
         if (!user) {
-            if (confirm('You need to sign in to book this experience. Go to login?')) {
+            if (confirm('Please sign in or create a free account to book. Go to Login?')) {
                 navigate('/login');
             }
             return;
         }
-        setSelectedReel(reel);
+        setSelectedEventForBooking(event);
     };
 
+    const featuredEvents = events.filter(e => e.featured);
+    const isFiltered = filters.search || filters.category !== 'all';
+
     return (
-        <div>
-            <div className="glass-panel" style={{ marginTop: '80px', marginBottom: '20px', width: '90%', maxWidth: '800px', margin: '80px auto 20px auto', padding: '10px' }}>
-                <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-                    <input name="search" placeholder="Search (e.g. Diani, Mara)..." value={filters.search} onChange={handleChange} style={{ padding: '8px', borderRadius: '5px', border: 'none' }} />
-                    <input name="location" placeholder="Location (e.g. Nairobi)" value={filters.location} onChange={handleChange} style={{ padding: '8px', borderRadius: '5px', border: 'none' }} />
-                    <div style={{ minWidth: '180px' }}>
-                        <CustomSelect
-                            placeholder="All Categories"
-                            value={filters.category}
-                            onChange={(val) => setFilters({ ...filters, category: val })}
-                            options={[
-                                { value: '', label: 'All Categories' },
-                                { value: 'Safari', label: 'Safari', icon: <FaPaw /> },
-                                { value: 'Beach', label: 'Beach', icon: <FaUmbrellaBeach /> },
-                                { value: 'Staycation', label: 'Staycation', icon: <FaHotel /> },
-                                { value: 'Culture', label: 'Culture', icon: <FaLandmark /> },
-                                { value: 'Food', label: 'Food', icon: <FaUtensils /> },
-                            ]}
-                        />
+        <div className="home-event-page">
+            <div className="container" style={{ paddingTop: '90px', paddingBottom: '70px' }}>
+
+                {/* ── Category Chips ── */}
+                <div className="categories-filter-wrapper">
+                    <div className="categories-header-row">
+                        <div>
+                            <h3>Browse by Category</h3>
+                            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                                Culture · Food · Stays · Beach · Safaris
+                            </span>
+
+                        </div>
+                        <span className="results-counter">
+                            {loading ? '…' : `${events.length} experience${events.length !== 1 ? 's' : ''}`}
+                        </span>
                     </div>
-                    <button type="submit" className="btn btn-primary"><FaSearch /></button>
-                    <button type="button" className="btn btn-secondary" onClick={handleRefresh} title="Refresh Feed"><FaRedo /></button>
-                </form>
-            </div>
 
-            <div className="feed-container" style={{ paddingTop: '0' }}>
-                {reels.length > 0 ? (
-                    reels.map(reel => (
-                        <ReelCard key={reel.id} reel={reel} onBook={handleBookClick} />
-                    ))
-                ) : (
-                    !loading && <p style={{ marginTop: '100px' }}>No reels found. Try adjusting filters.</p>
+                    <div className="categories-chips-scroll">
+                        {COASTAL_CATEGORIES.map(cat => (
+                            <button
+                                key={cat.id}
+                                className={`category-chip ${filters.category === cat.id ? 'active' : ''}`}
+                                onClick={() => handleCategoryClick(cat.id)}
+                            >
+                                <span className="chip-icon">{CATEGORY_ICONS[cat.id] || <FaWater />}</span>
+                                <span className="chip-label">{cat.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* ── Active Search Banner ── */}
+                {filters.search && (
+                    <div className="active-search-banner">
+                        <FaCompass style={{ color: '#0284c7' }} />
+                        <span>Results for <strong>"{filters.search}"</strong></span>
+                        <button className="btn btn-secondary btn-sm" onClick={handleReset}>
+                            <FaRedo /> Clear
+                        </button>
+                    </div>
                 )}
-                {loading && <p style={{ textAlign: 'center', padding: '20px' }}>Loading...</p>}
-                {!hasMore && reels.length > 0 && <p style={{ textAlign: 'center', padding: '20px' }}>No more reels to show.</p>}
+
+                {/* ── Featured Experiences ── */}
+                {!isFiltered && featuredEvents.length > 0 && (
+                    <div className="featured-section">
+                        <div className="section-title-row">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <FaStar style={{ color: '#ff0050' }} />
+                                <h3>Featured Coastal Experiences</h3>
+                            </div>
+                            <span className="badge" style={{ background: '#ff0050', color: 'white' }}>Top Rated</span>
+                        </div>
+                        <div className="events-grid">
+                            {featuredEvents.slice(0, 2).map(event => (
+                                <EventCard
+                                    key={event.id}
+                                    event={event}
+                                    onBook={handleBookClick}
+                                    onSelectDetails={setSelectedEventForDetails}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── All Events Grid ── */}
+                <div className="all-events-section" style={{ marginTop: '30px' }}>
+                    <div className="section-title-row">
+                        <h3>
+                            {filters.category === 'all' ? 'All Coastal Experiences' : `${filters.category} Experiences`}
+                        </h3>
+                    </div>
+
+                    {loading ? (
+                        <div className="empty-state-card">
+                            <p>Loading coastal experiences…</p>
+                        </div>
+                    ) : events.length > 0 ? (
+                        <div className="events-grid">
+                            {events.map(event => (
+                                <EventCard
+                                    key={event.id}
+                                    event={event}
+                                    onBook={handleBookClick}
+                                    onSelectDetails={setSelectedEventForDetails}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="empty-state-card">
+                            <div className="empty-icon-box"><FaTicketAlt /></div>
+                            <h3>No Experiences Found</h3>
+                            <p>Try a different category, destination, or clear your search.</p>
+                            <button className="btn btn-primary" onClick={handleReset} style={{ marginTop: '15px' }}>
+                                View All Experiences
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {selectedReel && (
-                <BookingModal reel={selectedReel} onClose={() => setSelectedReel(null)} />
+            {/* ── Booking Modal ── */}
+            {selectedEventForBooking && (
+                <BookingModal
+                    event={selectedEventForBooking}
+                    onClose={() => setSelectedEventForBooking(null)}
+                    onBookingCompleted={() => fetchEvents()}
+                />
+            )}
+
+            {/* ── Event Details Modal ── */}
+            {selectedEventForDetails && (
+                <EventDetailsModal
+                    event={selectedEventForDetails}
+                    onClose={() => setSelectedEventForDetails(null)}
+                    onBook={handleBookClick}
+                />
             )}
         </div>
     );

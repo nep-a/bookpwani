@@ -1,93 +1,70 @@
 import { useState, useContext, useEffect } from 'react';
-import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { useNotification } from '../context/NotificationContext';
 
 const Profile = () => {
     const { user, setUser } = useContext(AuthContext);
+    const { showNotification } = useNotification();
     const [username, setUsername] = useState('');
-    const [file, setFile] = useState(null);
-    const [preview, setPreview] = useState('');
+    const [bio, setBio] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [avatarUrl, setAvatarUrl] = useState('');
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
 
     useEffect(() => {
         if (user) {
-            setUsername(user.username);
-            // Fetch latest user data to get current profile pic
-            fetchProfile();
+            setUsername(user.username || '');
+            setBio(user.bio || '');
+            setPhoneNumber(user.phone_number || '');
+            setAvatarUrl(user.avatar || '');
         }
     }, [user]);
-
-    const fetchProfile = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/api/users/me`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            if (res.data.profile_picture) {
-                setPreview(`${API_URL}${res.data.profile_picture}`);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        setFile(selectedFile);
-        if (selectedFile) {
-            setPreview(URL.createObjectURL(selectedFile));
-        }
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setMessage('');
-
-        const formData = new FormData();
-        formData.append('username', username);
-        if (file) {
-            formData.append('profile_picture', file);
-        }
-
         try {
-            const res = await axios.put(`${API_URL}/api/users/me`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            setMessage('Profile updated successfully!');
-            // Update local context/storage if needed, though AuthContext might need a refresh method
-            // For now, let's just update the user object in localStorage loosely or rely on fetch
+            const updatedUser = {
+                ...user,
+                username,
+                bio,
+                phone_number: phoneNumber,
+                avatar: avatarUrl || user?.avatar
+            };
+
+            setUser(updatedUser);
+            localStorage.setItem('zuru_current_user', JSON.stringify(updatedUser));
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            showNotification('Profile updated successfully!', 'success');
         } catch (error) {
-            setMessage('Error updating profile: ' + (error.response?.data?.error || error.message));
+            showNotification('Error updating profile: ' + error.message, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="container" style={{ paddingTop: '100px' }}>
-            <div className="glass-panel" style={{ maxWidth: '500px', margin: '0 auto' }}>
-                <h2 style={{ textAlign: 'center' }}>Edit Profile</h2>
+        <div className="container" style={{ paddingTop: '100px', paddingBottom: '60px' }}>
+            <div className="glass-panel" style={{ maxWidth: '540px', margin: '0 auto' }}>
+                <h2 style={{ textAlign: 'center' }}>Account Profile</h2>
+                <p style={{ textAlign: 'center', color: '#718096', fontSize: '0.9rem', marginBottom: '20px' }}>
+                    Role: <strong style={{ textTransform: 'capitalize' }}>{user?.role === 'host' ? 'Event Organizer' : user?.role}</strong>
+                </p>
 
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
                     <div style={{
-                        width: '120px',
-                        height: '120px',
+                        width: '100px',
+                        height: '100px',
                         borderRadius: '50%',
                         overflow: 'hidden',
                         border: '3px solid var(--primary-color)',
                         background: '#eee'
                     }}>
-                        {preview ? (
-                            <img src={preview} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {avatarUrl ? (
+                            <img src={avatarUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
-                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
-                                No Image
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: '2rem' }}>
+                                {username?.charAt(0).toUpperCase() || 'U'}
                             </div>
                         )}
                     </div>
@@ -95,16 +72,37 @@ const Profile = () => {
 
                 <form onSubmit={handleSubmit} className="auth-form" style={{ maxWidth: '100%', boxShadow: 'none', padding: '0', background: 'transparent' }}>
                     <div className="form-group">
-                        <label>Profile Picture</label>
-                        <input type="file" accept="image/*" onChange={handleFileChange} />
+                        <label>Avatar Image URL</label>
+                        <input
+                            type="text"
+                            placeholder="https://..."
+                            value={avatarUrl}
+                            onChange={(e) => setAvatarUrl(e.target.value)}
+                        />
                     </div>
+
                     <div className="form-group">
-                        <label>Username</label>
+                        <label>Username / Display Name</label>
                         <input value={username} onChange={(e) => setUsername(e.target.value)} required />
                     </div>
-                    {message && <p style={{ textAlign: 'center', color: message.includes('Error') ? 'red' : 'green' }}>{message}</p>}
+
+                    <div className="form-group">
+                        <label>Phone / M-Pesa Number</label>
+                        <input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+254 7XX XXX XXX" />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Bio / About</label>
+                        <textarea
+                            value={bio}
+                            onChange={(e) => setBio(e.target.value)}
+                            rows="3"
+                            placeholder="Tell attendees about yourself or your organization..."
+                        />
+                    </div>
+
                     <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%' }}>
-                        {loading ? 'Saving...' : 'Save Changes'}
+                        {loading ? 'Saving...' : 'Save Profile Changes'}
                     </button>
                 </form>
             </div>

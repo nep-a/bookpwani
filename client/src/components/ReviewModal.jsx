@@ -1,43 +1,43 @@
-import { useState } from 'react';
-import axios from 'axios';
+import { useState, useContext } from 'react';
 import { FaStar, FaTimes } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { AuthContext } from '../context/AuthContext';
+import { eventService } from '../services/eventService';
 
 const ReviewModal = ({ booking, onClose, onReviewSubmitted }) => {
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
     const [hover, setHover] = useState(null);
+    const { user } = useContext(AuthContext);
     const { showNotification } = useNotification();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post(`${API_URL}/api/reviews`, {
-                booking_id: booking.id,
+            await eventService.addReview(booking.eventId, {
+                user,
                 rating,
                 comment
-            }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            showNotification('Review submitted successfully!', 'success');
-            onReviewSubmitted();
+            showNotification('Thank you! Review submitted successfully.', 'success');
+            if (onReviewSubmitted) onReviewSubmitted();
             onClose();
         } catch (error) {
-            showNotification(error.response?.data?.message || 'Failed to submit review', 'error');
+            showNotification(error.message || 'Failed to submit review', 'error');
         }
     };
 
-    return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <button className="close-btn" onClick={onClose}><FaTimes /></button>
-                <h2>Rate your experience</h2>
-                <p>How was your trip with {booking.Reel.title}?</p>
+    const eventName = booking.eventTitle || booking.Reel?.title || 'this event';
 
-                <form onSubmit={handleSubmit} className="auth-form">
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px' }}>
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <button className="close-btn" onClick={onClose}><FaTimes /></button>
+                <h2>Rate Your Experience</h2>
+                <p style={{ color: '#64748b' }}>How was your experience attending <strong>{eventName}</strong>?</p>
+
+                <form onSubmit={handleSubmit} className="auth-form" style={{ padding: 0, boxShadow: 'none', background: 'transparent' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', marginTop: '10px' }}>
                         {[...Array(5)].map((star, i) => {
                             const ratingValue = i + 1;
                             return (
@@ -52,7 +52,7 @@ const ReviewModal = ({ booking, onClose, onReviewSubmitted }) => {
                                     <FaStar
                                         className="star"
                                         color={ratingValue <= (hover || rating) ? "#ffc107" : "#e4e5e9"}
-                                        size={30}
+                                        size={32}
                                         onMouseEnter={() => setHover(ratingValue)}
                                         onMouseLeave={() => setHover(null)}
                                         style={{ cursor: 'pointer', transition: 'color 0.2s' }}
@@ -64,17 +64,19 @@ const ReviewModal = ({ booking, onClose, onReviewSubmitted }) => {
 
                     <div className="form-group">
                         <textarea
-                            placeholder="Share your experience..."
+                            placeholder="Share highlights, favorite artists, venue organization..."
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             required
-                            minLength={10}
+                            minLength={5}
                             maxLength={500}
                             rows="4"
                         />
                     </div>
 
-                    <button type="submit" className="btn btn-primary">Submit Review</button>
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+                        Submit Review
+                    </button>
                 </form>
             </div>
         </div>

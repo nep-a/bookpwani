@@ -43,7 +43,7 @@ const NotificationBanner = () => {
                     {notification.type === 'success' ? '📧' : 'ℹ️'}
                 </span>
                 <div>
-                    <strong>{notification.type === 'success' ? 'Check your email!' : 'Notification'}</strong>
+                    <strong>{notification.type === 'success' ? 'Success' : 'Notification'}</strong>
                     <div style={{ fontSize: '0.95rem' }}>{notification.message}</div>
                 </div>
             </div>

@@ -1,35 +1,39 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect, useContext, useCallback } from 'react';
+import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import { eventService } from '../services/eventService';
+import TicketPassModal from '../components/TicketPassModal';
 import ReviewModal from '../components/ReviewModal';
-import { FaCalendarAlt, FaTimesCircle, FaCheck, FaTrash } from 'react-icons/fa';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { FaTicketAlt, FaCalendarAlt, FaMapMarkerAlt, FaTimesCircle, FaCheck, FaTrash, FaQrcode, FaStar } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const MyBookings = () => {
-    const [bookings, setBookings] = useState([]);
-    const [selectedBooking, setSelectedBooking] = useState(null);
-    const [editingBooking, setEditingBooking] = useState(null);
-    const [editForm, setEditForm] = useState({ newDate: '', guests: 1 });
-    const [showCancelModal, setShowCancelModal] = useState(false);
-    const [bookingToCancel, setBookingToCancel] = useState(null);
+    const { user } = useContext(AuthContext);
     const { showNotification } = useNotification();
+    const [bookings, setBookings] = useState([]);
+    const [selectedTicketForPass, setSelectedTicketForPass] = useState(null);
+    const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
+    const [bookingToCancel, setBookingToCancel] = useState(null);
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const fetchBookings = async () => {
+    const fetchBookings = useCallback(async () => {
+        if (!user) return;
+        setLoading(true);
         try {
-            const res = await axios.get(`${API_URL}/api/bookings/my-bookings`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setBookings(res.data);
+            const data = await eventService.getMyBookings(user.id);
+            setBookings(data);
         } catch (error) {
-            console.error(error);
-            showNotification('Failed to fetch bookings', 'error');
+            console.error('Error loading tickets:', error);
+            showNotification('Failed to fetch tickets', 'error');
+        } finally {
+            setLoading(false);
         }
-    };
+    }, [user, showNotification]);
 
     useEffect(() => {
         fetchBookings();
-    }, []);
+    }, [fetchBookings]);
 
     const handleCancelClick = (booking) => {
         setBookingToCancel(booking);
@@ -39,158 +43,146 @@ const MyBookings = () => {
     const handleCancelConfirm = async () => {
         if (!bookingToCancel) return;
         try {
-            await axios.put(`${API_URL}/api/bookings/${bookingToCancel.id}/cancel`, {}, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            showNotification('Booking cancelled successfully', 'success');
-            fetchBookings();
+            await eventService.cancelBooking(bookingToCancel.id);
+            showNotification('Ticket booking cancelled', 'info');
             setShowCancelModal(false);
             setBookingToCancel(null);
+            fetchBookings();
         } catch (error) {
-            showNotification(error.response?.data?.message || 'Failed to cancel booking', 'error');
+            showNotification(error.message || 'Failed to cancel', 'error');
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to remove this booking from your list? This cannot be undone.')) return;
+        if (!confirm('Remove this cancelled ticket from your history?')) return;
         try {
-            await axios.put(`${API_URL}/api/bookings/${id}/delete`, {}, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            showNotification('Booking removed successfully', 'success');
+            await eventService.deleteBooking(id);
+            showNotification('Ticket record removed', 'success');
             fetchBookings();
         } catch (error) {
-            showNotification(error.response?.data?.message || 'Failed to delete booking', 'error');
+            showNotification('Failed to remove record', 'error');
         }
-    };
-
-    const handleUpdate = async (id) => {
-        if (!editForm.newDate || editForm.guests < 1) return;
-        try {
-            await axios.put(`${API_URL}/api/bookings/${id}/update`, editForm, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            showNotification('Booking updated successfully', 'success');
-            setEditingBooking(null);
-            fetchBookings();
-        } catch (error) {
-            showNotification(error.response?.data?.message || 'Failed to update booking', 'error');
-        }
-    };
-
-    const startEditing = (booking) => {
-        setEditingBooking(booking.id);
-        setEditForm({ newDate: booking.booking_date, guests: booking.guests });
     };
 
     return (
-        <div className="container" style={{ marginTop: '100px' }}>
-            <h2>My Bookings</h2>
-            <div className="glass-panel">
-                {bookings.length === 0 ? (
-                    <p>You haven't booked any trips yet.</p>
+        <div className="container" style={{ marginTop: '100px', paddingBottom: '60px' }}>
+            <div className="bookings-header-block">
+                <div>
+                    <h2>My Event Passes & Bookings</h2>
+                    <p style={{ color: '#718096' }}>View your confirmed passes, download QR check-in codes, and manage bookings.</p>
+                </div>
+                <Link to="/" className="btn btn-primary btn-sm">
+                    <FaTicketAlt /> Explore More Events
+                </Link>
+            </div>
+
+            <div className="glass-panel" style={{ marginTop: '20px' }}>
+                {loading ? (
+                    <p style={{ textAlign: 'center', padding: '30px' }}>Loading your tickets...</p>
+                ) : bookings.length === 0 ? (
+                    <div className="empty-state-card" style={{ padding: '40px 20px' }}>
+                        <div className="empty-icon-box">
+                            <FaTicketAlt />
+                        </div>
+                        <h3>No Bookings Found</h3>
+                        <p>You haven't booked any event passes yet. Browse upcoming music festivals, conferences & safaris!</p>
+                        <Link to="/" className="btn btn-primary" style={{ marginTop: '15px' }}>
+                            Browse Available Events
+                        </Link>
+                    </div>
                 ) : (
                     <div className="table-container">
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
-                                <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--glass-border)' }}>
-                                    <th style={{ padding: '10px' }}>Experience</th>
-                                    <th style={{ padding: '10px' }}>Date</th>
-                                    <th style={{ padding: '10px' }}>Guests</th>
-                                    <th style={{ padding: '10px' }}>Total</th>
-                                    <th style={{ padding: '10px' }}>Status</th>
-                                    <th style={{ padding: '10px' }}>Action</th>
+                                <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--glass-border)' }}>
+                                    <th style={{ padding: '14px 10px' }}>Event</th>
+                                    <th style={{ padding: '14px 10px' }}>Date & Venue</th>
+                                    <th style={{ padding: '14px 10px' }}>Pass Category</th>
+                                    <th style={{ padding: '14px 10px' }}>Qty</th>
+                                    <th style={{ padding: '14px 10px' }}>Total Paid</th>
+                                    <th style={{ padding: '14px 10px' }}>Status</th>
+                                    <th style={{ padding: '14px 10px', textAlign: 'right' }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {bookings.map(booking => (
                                     <tr key={booking.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                                        <td style={{ padding: '10px' }}>{booking.Reel.title}</td>
-                                        <td style={{ padding: '10px' }}>
-                                            {editingBooking === booking.id ? (
-                                                <input
-                                                    type="date"
-                                                    value={editForm.newDate}
-                                                    onChange={(e) => setEditForm({ ...editForm, newDate: e.target.value })}
-                                                    style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc', width: '130px' }}
-                                                />
-                                            ) : (
-                                                booking.booking_date
-                                            )}
+                                        <td style={{ padding: '14px 10px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                {booking.eventImage && (
+                                                    <img
+                                                        src={booking.eventImage}
+                                                        alt={booking.eventTitle}
+                                                        style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
+                                                    />
+                                                )}
+                                                <div>
+                                                    <strong style={{ display: 'block', fontSize: '0.95rem' }}>{booking.eventTitle}</strong>
+                                                    <span style={{ fontSize: '0.8rem', color: '#718096' }}>Ref: {booking.ticketCode}</span>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td style={{ padding: '10px' }}>
-                                            {editingBooking === booking.id ? (
-                                                <input
-                                                    type="number"
-                                                    min="1"
-                                                    value={editForm.guests}
-                                                    onChange={(e) => setEditForm({ ...editForm, guests: parseInt(e.target.value) })}
-                                                    style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc', width: '60px' }}
-                                                />
-                                            ) : (
-                                                booking.guests
-                                            )}
+                                        <td style={{ padding: '14px 10px' }}>
+                                            <div style={{ fontSize: '0.9rem' }}>
+                                                <div><FaCalendarAlt style={{ color: 'var(--primary-color)' }} /> {booking.eventDate}</div>
+                                                <div style={{ color: '#718096', fontSize: '0.8rem' }}><FaMapMarkerAlt /> {booking.eventVenue}</div>
+                                            </div>
                                         </td>
-                                        <td style={{ padding: '10px' }}>Ksh {booking.total_price}</td>
-                                        <td style={{ padding: '10px' }}>
-                                            <span style={{
-                                                padding: '5px 10px',
-                                                borderRadius: '15px',
-                                                background: booking.status === 'confirmed' ? '#48bb78' :
-                                                    booking.status === 'completed' ? '#38a169' :
-                                                        booking.status === 'cancelled' ? '#f56565' : '#ed8936',
-                                                color: 'white',
-                                                fontSize: '0.8rem',
-                                                textTransform: 'capitalize'
-                                            }}>
-                                                {booking.status.replace('_', ' ')}
+                                        <td style={{ padding: '14px 10px' }}>
+                                            <span className="badge" style={{ background: '#edf2f7', color: '#2d3748', border: 'none' }}>
+                                                {booking.ticketTierName}
                                             </span>
                                         </td>
-                                        <td style={{ padding: '10px', display: 'flex', gap: '10px' }}>
-                                            {editingBooking === booking.id ? (
-                                                <div style={{ display: 'flex', gap: '5px' }}>
-                                                    <button onClick={() => handleUpdate(booking.id)} className="btn btn-sm btn-primary" title="Save"><FaCheck /></button>
-                                                    <button onClick={() => setEditingBooking(null)} className="btn btn-sm btn-secondary" title="Cancel"><FaTimesCircle /></button>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    {booking.status !== 'cancelled' && booking.status !== 'completed' && (
-                                                        <>
-                                                            <button
-                                                                className="btn btn-secondary btn-sm"
-                                                                onClick={() => startEditing(booking)}
-                                                                title="Edit Booking"
-                                                            >
-                                                                <FaCalendarAlt />
-                                                            </button>
-                                                            <button
-                                                                className="btn btn-danger btn-sm"
-                                                                onClick={() => handleCancelClick(booking)}
-                                                                title="Cancel Booking"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                    {(booking.status === 'cancelled' || booking.status === 'completed') && (
+                                        <td style={{ padding: '14px 10px', fontWeight: 'bold' }}>
+                                            {booking.quantity}
+                                        </td>
+                                        <td style={{ padding: '14px 10px', fontWeight: 'bold', color: 'var(--primary-color)' }}>
+                                            Ksh {Number(booking.totalPrice).toLocaleString()}
+                                        </td>
+                                        <td style={{ padding: '14px 10px' }}>
+                                            <span style={{
+                                                padding: '4px 12px',
+                                                borderRadius: '20px',
+                                                background: booking.status === 'confirmed' ? '#48bb78' :
+                                                    booking.status === 'cancelled' ? '#f56565' : '#ed8936',
+                                                color: 'white',
+                                                fontSize: '0.8rem',
+                                                fontWeight: '600',
+                                                textTransform: 'capitalize'
+                                            }}>
+                                                {booking.status}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '14px 10px', textAlign: 'right' }}>
+                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                {booking.status === 'confirmed' && (
+                                                    <>
                                                         <button
-                                                            className="btn btn-danger btn-sm"
-                                                            onClick={() => handleDelete(booking.id)}
-                                                            title="Delete from list"
+                                                            className="btn btn-sm btn-primary"
+                                                            onClick={() => setSelectedTicketForPass(booking)}
+                                                            title="View Digital QR Pass"
                                                         >
-                                                            <FaTrash />
+                                                            <FaQrcode /> View Pass
                                                         </button>
-                                                    )}
-                                                    {booking.status === 'completed' && (
                                                         <button
-                                                            className="btn btn-primary btn-sm"
-                                                            onClick={() => setSelectedBooking(booking)}
+                                                            className="btn btn-sm btn-secondary"
+                                                            onClick={() => handleCancelClick(booking)}
+                                                            title="Cancel Booking"
                                                         >
-                                                            Review
+                                                            Cancel
                                                         </button>
-                                                    )}
-                                                </>
-                                            )}
+                                                    </>
+                                                )}
+                                                {booking.status === 'cancelled' && (
+                                                    <button
+                                                        className="btn btn-sm btn-danger"
+                                                        onClick={() => handleDelete(booking.id)}
+                                                        title="Delete from list"
+                                                    >
+                                                        <FaTrash />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -200,23 +192,33 @@ const MyBookings = () => {
                 )}
             </div>
 
-            {selectedBooking && (
-                <ReviewModal
-                    booking={selectedBooking}
-                    onClose={() => setSelectedBooking(null)}
-                    onReviewSubmitted={fetchBookings}
+            {/* Digital QR Ticket Pass Modal */}
+            {selectedTicketForPass && (
+                <TicketPassModal
+                    booking={selectedTicketForPass}
+                    onClose={() => setSelectedTicketForPass(null)}
                 />
             )}
 
-            {showCancelModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
-                        <h3>Cancel Booking?</h3>
-                        <p>Are you sure you want to cancel your booking for <strong>{bookingToCancel?.Reel?.title}</strong>?</p>
-                        <p style={{ fontSize: '0.9rem', color: '#718096' }}>This action cannot be undone.</p>
+            {/* Cancel Booking Confirmation Modal */}
+            {showCancelModal && bookingToCancel && (
+                <div className="modal-overlay" onClick={() => setShowCancelModal(false)}>
+                    <div className="modal-content" style={{ maxWidth: '420px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                        <FaTimesCircle style={{ fontSize: '3rem', color: '#e53e3e', margin: '0 auto 15px auto' }} />
+                        <h3>Cancel Pass Reservation?</h3>
+                        <p style={{ margin: '10px 0', color: '#4a5568' }}>
+                            Are you sure you want to cancel your pass for <strong>{bookingToCancel.eventTitle}</strong>?
+                        </p>
+                        <p style={{ fontSize: '0.85rem', color: '#718096' }}>
+                            Your reserved spots will be returned to the ticket pool.
+                        </p>
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
-                            <button className="btn btn-secondary" onClick={() => setShowCancelModal(false)}>No, Keep it</button>
-                            <button className="btn btn-danger" onClick={handleCancelConfirm}>Yes, Cancel Booking</button>
+                            <button className="btn btn-secondary" onClick={() => setShowCancelModal(false)}>
+                                Keep Reservation
+                            </button>
+                            <button className="btn btn-danger" onClick={handleCancelConfirm}>
+                                Yes, Cancel Booking
+                            </button>
                         </div>
                     </div>
                 </div>

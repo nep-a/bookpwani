@@ -1,85 +1,122 @@
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { FaUserTie, FaUser, FaShieldAlt, FaTicketAlt } from 'react-icons/fa';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const { login } = useContext(AuthContext);
+    const { login, switchDemoUser } = useContext(AuthContext);
     const navigate = useNavigate();
-    const [isUnverified, setIsUnverified] = useState(false);
-    const [resendStatus, setResendStatus] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setIsUnverified(false);
         const res = await login(email, password);
         if (res.success) {
             navigate('/');
         } else {
             setError(res.message);
-            if (res.isUnverified) {
-                setIsUnverified(true);
-            }
         }
     };
 
-    const handleResend = async () => {
-        try {
-            setResendStatus('Sending...');
-            // We need to import axios or use a context method. Since axios is not imported, let's assume we can use fetch or add axios.
-            // But wait, axios is not imported in the original file. Let's use fetch for simplicity or add axios import.
-            // Better to add axios import.
-            // For now, I'll use fetch to avoid adding import if possible, but the project uses axios.
-            // I will add axios import in a separate step if needed, but let's try to use the existing pattern.
-            // Actually, I can just use fetch.
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/resend-verification`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-            const data = await response.json();
-            if (response.ok) {
-                setResendStatus('Email sent!');
-            } else {
-                setResendStatus(data.message || 'Failed to send.');
-            }
-        } catch (err) {
-            setResendStatus('Error sending email.');
-        }
+    const handleDemoLogin = (role) => {
+        switchDemoUser(role);
+        navigate('/');
     };
 
     return (
         <div className="auth-container">
-            <div className="glass-panel auth-form">
-                <h2 style={{ textAlign: 'center' }}>Welcome Back</h2>
-                {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-                {isUnverified && (
-                    <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+            <div className="glass-panel auth-form" style={{ maxWidth: '460px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                    <div className="logo-badge" style={{ margin: '0 auto 10px auto', width: '48px', height: '48px' }}>
+                        <FaTicketAlt style={{ color: 'white', fontSize: '1.4rem' }} />
+                    </div>
+                    <h2>Welcome to ZuruEvents</h2>
+                    <p style={{ color: '#718096', fontSize: '0.9rem' }}>
+                        Sign in to access your digital tickets and manage events.
+                    </p>
+                </div>
+
+                {/* 1-Click Demo Login Box */}
+                <div className="demo-accounts-card">
+                    <span className="demo-header-title">⚡ Instant 1-Click Demo Access</span>
+                    <div className="demo-buttons-grid">
                         <button
                             type="button"
-                            onClick={handleResend}
-                            className="btn btn-sm btn-secondary"
-                            disabled={resendStatus === 'Sending...' || resendStatus === 'Email sent!'}
+                            className="demo-login-btn host-demo"
+                            onClick={() => handleDemoLogin('host')}
                         >
-                            {resendStatus || 'Resend Verification Email'}
+                            <FaUserTie />
+                            <div>
+                                <strong>Organizer View</strong>
+                                <span>Post events & manage sales</span>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="demo-login-btn attendee-demo"
+                            onClick={() => handleDemoLogin('traveler')}
+                        >
+                            <FaUser />
+                            <div>
+                                <strong>Attendee View</strong>
+                                <span>Browse & book event passes</span>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="demo-login-btn admin-demo"
+                            onClick={() => handleDemoLogin('admin')}
+                        >
+                            <FaShieldAlt />
+                            <div>
+                                <strong>Admin View</strong>
+                                <span>System oversight & logs</span>
+                            </div>
                         </button>
                     </div>
-                )}
+                </div>
+
+                <div className="auth-divider-line">
+                    <span>or sign in with email</span>
+                </div>
+
+                {error && <p style={{ color: '#e53e3e', textAlign: 'center', fontSize: '0.9rem' }}>{error}</p>}
+
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div className="form-group">
-                        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                        <label>Email Address</label>
+                        <input
+                            type="email"
+                            placeholder="e.g. attendee@zuruevents.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
                     </div>
                     <div className="form-group">
-                        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                        <label>Password</label>
+                        <input
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
                     </div>
-                    <button type="submit" className="btn btn-primary">Login</button>
+                    <button type="submit" className="btn btn-primary" style={{ padding: '12px' }}>
+                        Sign In
+                    </button>
                 </form>
-                <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                    <Link to="/forgot-password" style={{ color: 'var(--primary-color)', fontSize: '0.9rem', textDecoration: 'none' }}>
-                        Forgot Password?
+
+                <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#718096' }}>Don't have an account yet? </span>
+                    <Link to="/register" style={{ color: 'var(--primary-color)', fontWeight: 'bold', textDecoration: 'none' }}>
+                        Create an Account
                     </Link>
                 </div>
             </div>
