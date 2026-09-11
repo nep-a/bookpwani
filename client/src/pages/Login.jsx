@@ -39,41 +39,6 @@ const Login = () => {
                     </p>
                 </div>
 
-                {/* 1-Click Demo Login Box */}
-                <div className="demo-accounts-card">
-                    <span className="demo-header-title">⚡ Instant 1-Click Demo Access</span>
-                    <div className="demo-buttons-grid">
-                        <button
-                            type="button"
-                            className="demo-login-btn host-demo"
-                            onClick={() => handleDemoLogin('host')}
-                        >
-                            <FaUserTie />
-                            <div>
-                                <strong>Organizer View</strong>
-                                <span>Post events & manage sales</span>
-                            </div>
-                        </button>
-
-                        <button
-                            type="button"
-                            className="demo-login-btn attendee-demo"
-                            onClick={() => handleDemoLogin('traveler')}
-                        >
-                            <FaUser />
-                            <div>
-                                <strong>Attendee View</strong>
-                                <span>Browse & book event passes</span>
-                            </div>
-                        </button>
-
-                        {/* Admin demo button removed per requirements */}
-                    </div>
-                </div>
-
-                <div className="auth-divider-line">
-                    <span>or sign in with email</span>
-                </div>
 
                 {error && <p style={{ color: '#e53e3e', textAlign: 'center', fontSize: '0.9rem' }}>{error}</p>}
 
