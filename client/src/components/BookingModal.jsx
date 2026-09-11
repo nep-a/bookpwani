@@ -29,8 +29,19 @@ const BookingModal = ({ event, reel, onClose, onBookingCompleted }) => {
 
     if (!activeEvent) return null;
 
+    let hasDiscount = false;
+    let discountMultiplier = 1;
+    if (activeEvent.discount_percentage && activeEvent.discount_end_date) {
+        if (new Date(activeEvent.discount_end_date) > new Date()) {
+            hasDiscount = true;
+            discountMultiplier = 1 - (activeEvent.discount_percentage / 100);
+        }
+    }
+
     const selectedTier = tiers.find(t => t.id === selectedTierId) || tiers[0];
-    const subtotal = (selectedTier?.price || activeEvent.price || 0) * quantity;
+    const basePrice = selectedTier?.price || activeEvent.price || 0;
+    const currentPrice = basePrice * discountMultiplier;
+    const subtotal = currentPrice * quantity;
 
     const handleQuantityChange = (delta) => {
         const next = quantity + delta;
@@ -176,7 +187,18 @@ const BookingModal = ({ event, reel, onClose, onBookingCompleted }) => {
                                                 </span>
                                             </div>
                                             <div className="tier-price-tag">
-                                                Ksh {Number(tier.price).toLocaleString()}
+                                                {hasDiscount ? (
+                                                    <>
+                                                        <span style={{ textDecoration: 'line-through', color: '#a0aec0', fontSize: '0.85rem', marginRight: '5px' }}>
+                                                            Ksh {Number(tier.price).toLocaleString()}
+                                                        </span>
+                                                        <span style={{ color: '#e53e3e' }}>
+                                                            Ksh {(Number(tier.price) * discountMultiplier).toLocaleString()}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    `Ksh ${Number(tier.price).toLocaleString()}`
+                                                )}
                                             </div>
                                         </div>
                                     );
@@ -264,7 +286,7 @@ const BookingModal = ({ event, reel, onClose, onBookingCompleted }) => {
                             <div className="checkout-total-block">
                                 <span className="summary-label">Total Amount</span>
                                 <span className="summary-price">Ksh {subtotal.toLocaleString()}</span>
-                                <span className="summary-breakdown">{quantity} × Ksh {selectedTier?.price?.toLocaleString()}</span>
+                                <span className="summary-breakdown">{quantity} × Ksh {currentPrice.toLocaleString()} {hasDiscount && '(Discount Applied)'}</span>
                             </div>
 
                             <button

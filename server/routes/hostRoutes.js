@@ -12,4 +12,6 @@ router.post('/events', upload.single('eventImage'), hostController.createEvent);
 router.put('/events/:id', hostController.updateEvent);
 router.get('/events', hostController.getEvents);
 router.post('/verify', upload.single('passportFile'), hostController.submitVerification);
+router.get('/bookings', hostController.getBookings);
+router.post('/events/:id/discount', hostController.applyDiscount);
 module.exports = router;

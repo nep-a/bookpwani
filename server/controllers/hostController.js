@@ -121,4 +121,56 @@ const submitVerification = async (req, res) => {
     }
 };
 
-module.exports = { updateProfile, createEvent, updateEvent, getEvents, submitVerification };
+
+const getBookings = async (req, res) => {
+    const supabase = require('../config/supabase');
+    try {
+        const { data: events, error: eventError } = await supabase
+            .from('events')
+            .select('id')
+            .eq('host_id', req.user.id);
+            
+        if (eventError) throw eventError;
+        
+        if (!events || events.length === 0) {
+            return res.status(200).json({ bookings: [] });
+        }
+        
+        const eventIds = events.map(e => e.id);
+        
+        const { data: bookings, error } = await supabase
+            .from('bookings')
+            .select('*, event:events(*)')
+            .in('event_id', eventIds);
+
+        if (error) throw error;
+        res.status(200).json({ bookings });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching bookings', error: error.message });
+    }
+};
+
+const applyDiscount = async (req, res) => {
+    const supabase = require('../config/supabase');
+    try {
+        const { id } = req.params;
+        const { discount_percentage, discount_end_date } = req.body;
+
+        const { data: event, error } = await supabase
+            .from('events')
+            .update({ 
+                discount_percentage, 
+                discount_end_date 
+            })
+            .eq('id', id)
+            .eq('host_id', req.user.id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(200).json({ message: 'Discount applied', event });
+    } catch (error) {
+        res.status(500).json({ message: 'Error applying discount', error: error.message });
+    }
+};
+module.exports = { updateProfile, createEvent, updateEvent, getEvents, submitVerification, getBookings, applyDiscount };
