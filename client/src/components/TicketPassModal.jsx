@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { FaTimes, FaPrint, FaCheckCircle, FaMapMarkerAlt, FaCalendarAlt, FaTicketAlt, FaShieldAlt } from 'react-icons/fa';
 
 const TicketPassModal = ({ booking, onClose }) => {
@@ -42,7 +42,7 @@ const TicketPassModal = ({ booking, onClose }) => {
                                 <rect x="88" y="96" width="16" height="8" fill="#111" />
                             </svg>
                         </div>
-                        <div className="stub-code">{booking.ticketCode}</div>
+                        <div className="stub-code">{booking.ticket_code || booking.ticketCode}</div>
                         <div className="security-notice">
                             <FaShieldAlt /> Valid for 1-time scanning
                         </div>
@@ -69,7 +69,7 @@ const TicketPassModal = ({ booking, onClose }) => {
                                     <FaCheckCircle /> Confirmed
                                 </span>
                                 <span className="ticket-tier-badge">
-                                    <FaTicketAlt /> {booking.ticketTierName || 'General Pass'} x{booking.quantity || booking.tickets_count || 1}
+                                    <FaTicketAlt /> {booking.ticketTierName || booking.ticket_tier_name || 'General Pass'} x{booking.quantity || booking.tickets_count || 1}
                                 </span>
                             </div>
                             

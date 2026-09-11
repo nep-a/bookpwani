@@ -28,7 +28,7 @@ const updateProfile = async (req, res) => {
 
 const createEvent = async (req, res) => {
     try {
-        const { title, description, price, date } = req.body;
+        const { title, description, price, date, venue, time, category, capacity, vipPrice, vipCapacity } = req.body;
         const eventImage = req.file ? req.file.path : null;
 
         const { data: newEvent, error } = await supabase
@@ -37,8 +37,14 @@ const createEvent = async (req, res) => {
                 host_id: req.user.id,
                 title,
                 description,
-                price,
+                price: price || 0,
                 date,
+                venue,
+                time,
+                category,
+                capacity: capacity || 0,
+                vip_price: vipPrice || null,
+                vip_capacity: vipCapacity || 0,
                 image: eventImage
             }])
             .select()

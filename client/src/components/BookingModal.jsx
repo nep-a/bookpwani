@@ -52,21 +52,61 @@ const BookingModal = ({ event, reel, onClose, onBookingCompleted }) => {
 
     const processBooking = async () => {
         try {
-            const booking = await eventService.bookTickets({
-                eventId: activeEvent.id,
-                ticketTierId: selectedTier.id,
-                quantity,
-                attendeeName: name,
-                attendeeEmail: email,
-                attendeePhone: phone,
-                specialRequests,
-                user
-            });
+            let booking = null;
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('http://localhost:5000/api/traveler/book', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        eventId: activeEvent.id,
+                        ticketsCount: quantity,
+                        ticketTierName: selectedTier.name,
+                        totalPrice: subtotal
+                    })
+                });
 
-            showNotification(`Payment received! Booking ref: ${booking.ticketCode}`, 'success');
-            setConfirmedBooking(booking);
+                if (res.ok) {
+                    const json = await res.json();
+                    booking = json.booking;
+                    // the backend doesn't populate the full event object upon creation immediately, 
+                    // so we mock the structure needed for the TicketPassModal
+                    booking.event = activeEvent;
+                } else {
+                    throw new Error('Fallback to local');
+                }
+            } catch (backendError) {
+                booking = await eventService.bookTickets({
+                    eventId: activeEvent.id,
+                    ticketTierId: selectedTier.id,
+                    quantity,
+                    attendeeName: name,
+                    attendeeEmail: email,
+                    attendeePhone: phone,
+                    specialRequests,
+                    user
+                });
+            }
+
+            showNotification(`Payment received! Booking ref: ${booking.ticket_code || booking.ticketCode}`, 'success');
+            
+            // Map db keys to frontend keys if using backend
+            const confirmedPass = {
+                ...booking,
+                ticketCode: booking.ticket_code || booking.ticketCode,
+                ticketTierName: booking.ticket_tier_name || booking.ticketTierName,
+                quantity: booking.tickets_count || booking.quantity,
+                totalPrice: booking.total_price || booking.totalPrice,
+                eventTitle: activeEvent.title,
+                eventDate: activeEvent.date || activeEvent.startDate,
+                eventVenue: activeEvent.venue || activeEvent.location,
+                eventTime: activeEvent.time || '',
+                eventImage: activeEvent.image || ''
+            };
+            
+            setConfirmedBooking(confirmedPass);
             if (onBookingCompleted) {
-                onBookingCompleted(booking);
+                onBookingCompleted(confirmedPass);
             }
         } catch (error) {
             setPaymentStatus('error');
