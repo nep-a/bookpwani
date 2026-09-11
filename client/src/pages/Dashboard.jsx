@@ -30,10 +30,10 @@ const DiscountModal = ({ event, onClose, onSave }) => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(\http://localhost:5000/api/host/events/\/discount\, {
+            const res = await fetch(`http://localhost:5000/api/host/events/${event.id}/discount`, {
                 method: 'POST',
                 headers: { 
-                    'Authorization': \Bearer \\,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
