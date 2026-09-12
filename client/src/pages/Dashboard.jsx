@@ -170,7 +170,7 @@ const Dashboard = () => {
             {/* Header with Quick Actions */}
             <div className="dashboard-header-row">
                 <div>
-                    <h2>Host Dashboard</h2>
+                    <h2>Welcome back, {user?.username || 'Host'}!</h2>
                     <p style={{ color: '#718096' }}>Manage your experiences and track ticket sales.</p>
                 </div>
                 <Link to="/create-event" className="btn btn-primary">
