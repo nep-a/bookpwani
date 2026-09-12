@@ -58,7 +58,7 @@ const TicketPassModal = ({ booking, onClose }) => {
                     {/* Main Ticket Body (Event Details ONLY) */}
                     <div className="ticket-main-body">
                         {booking.eventImage && (
-                            <div className="ticket-bg-image" style={{ backgroundImage: \url(\)\ }}>
+                            <div className="ticket-bg-image" style={{ backgroundImage: `url(${booking.eventImage})` }}>
                                 <div className="ticket-overlay"></div>
                             </div>
                         )}

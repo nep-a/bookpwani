@@ -99,13 +99,13 @@ const Dashboard = () => {
             
             // Try fetching from real backend
             try {
-                const resEvents = await fetch('http://localhost:5000/api/host/events', { headers: { 'Authorization': \Bearer \\ }});
+                const resEvents = await fetch('http://localhost:5000/api/host/events', { headers: { 'Authorization': `Bearer ${token}` }});
                 if (resEvents.ok) {
                     const data = await resEvents.json();
                     hostEvents = data.events;
                 }
                 
-                const resBookings = await fetch('http://localhost:5000/api/host/bookings', { headers: { 'Authorization': \Bearer \\ }});
+                const resBookings = await fetch('http://localhost:5000/api/host/bookings', { headers: { 'Authorization': `Bearer ${token}` }});
                 if (resBookings.ok) {
                     const data = await resBookings.json();
                     hostBookings = data.bookings;
@@ -141,7 +141,7 @@ const Dashboard = () => {
     }, [loadOrganizerData]);
 
     const handleDeleteEvent = async (id, title) => {
-        if (!confirm(\Are you sure you want to delete "\"? This cannot be undone.\)) return;
+        if (!confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) return;
         try {
             await eventService.deleteEvent(id);
             showNotification('Event removed successfully', 'success');
@@ -215,19 +215,19 @@ const Dashboard = () => {
                 {/* Tabs */}
                 <div className="dashboard-tabs">
                     <button
-                        className={\dashboard-tab \\}
+                        className={`dashboard-tab ${activeTab === 'overview' ? 'active' : ''}`}
                         onClick={() => setActiveTab('overview')}
                     >
                         Overview
                     </button>
                     <button
-                        className={\dashboard-tab \\}
+                        className={`dashboard-tab ${activeTab === 'events' ? 'active' : ''}`}
                         onClick={() => setActiveTab('events')}
                     >
                         My Events
                     </button>
                     <button
-                        className={\dashboard-tab \\}
+                        className={`dashboard-tab ${activeTab === 'bookings' ? 'active' : ''}`}
                         onClick={() => setActiveTab('bookings')}
                     >
                         Recent Bookings

@@ -50,7 +50,7 @@ const FeaturedCarousel = ({ events, onBook, onSelectDetails }) => {
                     className="carousel-slide active" 
                     style={{ 
                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                        backgroundImage: \url(\)\,
+                        backgroundImage: `url(${event.image || ''})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         transition: 'opacity 0.5s ease-in-out'
@@ -108,7 +108,7 @@ const FeaturedCarousel = ({ events, onBook, onSelectDetails }) => {
                                     cursor: 'pointer',
                                     transition: 'all 0.3s ease'
                                 }} 
-                                aria-label={\Go to slide \\}
+                                aria-label={`Go to slide ${index + 1}`}
                             />
                         ))}
                     </div>
@@ -193,7 +193,7 @@ const Home = () => {
                             </span>
                         </div>
                         <span className="results-counter">
-                            {loading ? '...' : \\ experience\\}
+                            {loading ? '...' : `${filteredEvents.length} experience${filteredEvents.length !== 1 ? 's' : ''}`}
                         </span>
                     </div>
 
@@ -201,7 +201,7 @@ const Home = () => {
                         {COASTAL_CATEGORIES.map(cat => (
                             <button
                                 key={cat.id}
-                                className={\category-chip \\}
+                                className={`category-chip ${filters.category === cat.id ? 'active' : ''}`}
                                 onClick={() => handleCategoryClick(cat.id)}
                             >
                                 <span className="chip-icon">{CATEGORY_ICONS[cat.id] || <FaWater />}</span>
@@ -224,7 +224,7 @@ const Home = () => {
                 <div className="all-events-section" style={{ marginTop: isFiltered ? '20px' : '0' }}>
                     <div className="section-title-row">
                         <h3>
-                            {filters.category === 'all' ? 'All Coastal Experiences' : \\ Experiences\}
+                            {filters.category === 'all' ? 'All Coastal Experiences' : `${COASTAL_CATEGORIES.find(c => c.id === filters.category)?.name || ''} Experiences`}
                         </h3>
                     </div>
 
