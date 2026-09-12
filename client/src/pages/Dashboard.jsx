@@ -207,57 +207,15 @@ const Dashboard = () => {
                         <span className="stat-value">{analytics.activeEventsCount}</span>
                     </div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon" style={{ background: 'rgba(128, 90, 213, 0.1)', color: '#805ad5' }}>
-                        <FaChartBar />
-                    </div>
-                    <div className="stat-info">
-                        <span className="stat-label">Page Views</span>
-                        <span className="stat-value">{analytics.totalViews.toLocaleString()}</span>
-                    </div>
-                </div>
             </div>
 
             {/* Main Content Area */}
             <div className="dashboard-main-content">
-                {/* Tabs */}
-                <div className="dashboard-tabs">
-                    <button
-                        className={`dashboard-tab ${activeTab === 'overview' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('overview')}
-                    >
-                        Overview
-                    </button>
-                    <button
-                        className={`dashboard-tab ${activeTab === 'events' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('events')}
-                    >
-                        My Events
-                    </button>
-                </div>
-
-                {/* Tab Content */}
                 <div className="dashboard-tab-panel glass-panel">
-                    {activeTab === 'overview' && (
-                        <div className="overview-tab">
-                            <h3>Welcome back, {user.username}!</h3>
-                            <p style={{ marginTop: '10px', color: '#4a5568', lineHeight: '1.6' }}>
-                                Your dashboard gives you a complete overview of your hosting operations. Navigate to <strong>My Events</strong> to manage your listings, edit details, or check ticket availability.
-                            </p>
-                            
-                            <div style={{ marginTop: '30px', display: 'flex', gap: '15px' }}>
-                                <button className="btn btn-secondary" onClick={() => setActiveTab('events')}>
-                                    <FaEye /> View My Events
-                                </button>
-                            </div>
+                    <div className="events-tab">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3>Managed Events</h3>
                         </div>
-                    )}
-
-                    {activeTab === 'events' && (
-                        <div className="events-tab">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <h3>Managed Events</h3>
-                            </div>
 
                             {events.length === 0 ? (
                                 <div className="empty-state-card">
@@ -369,7 +327,6 @@ const Dashboard = () => {
                                 </div>
                             )}
                         </div>
-                    )}
                 </div>
             </div>
 
