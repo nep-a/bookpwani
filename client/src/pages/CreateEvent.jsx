@@ -102,7 +102,7 @@ const CreateEvent = () => {
 
     return (
         <div className="container" style={{ paddingTop: '100px', paddingBottom: '80px' }}>
-            <div className="create-event-layout">
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
                 {/* Form Column */}
                 <div className="glass-panel create-event-form-panel">
                     <div className="panel-title-block">
@@ -263,49 +263,6 @@ const CreateEvent = () => {
                             <FaPlus /> {loading ? 'Publishing...' : 'Publish Coastal Experience'}
                         </button>
                     </form>
-                </div>
-
-                {/* Live Preview Column */}
-                <div className="create-event-preview-col">
-                    <div className="sticky-preview-box">
-                        <span className="preview-label">Live Preview</span>
-                        <div className="event-card glass-panel preview-mode">
-                            <div className="event-card-media">
-                                <img
-                                    src={imagePreview || 'https://via.placeholder.com/600x400?text=Upload+Image'}
-                                    alt="Preview"
-                                    className="event-card-img"
-                                />
-                                <div className="event-category-chip">
-                                    <FaTag style={{ fontSize: '0.75rem' }} /> {formData.category}
-                                </div>
-                            </div>
-                            <div className="event-card-content">
-                                <div className="event-organizer-row">
-                                    <span className="event-organizer-name">
-                                        {user?.username || 'You (Host)'}
-                                    </span>
-                                </div>
-                                <h3 className="event-title">{formData.title || 'Your Coastal Experience Title'}</h3>
-                                <div className="event-meta-row">
-                                    <span><FaCalendarAlt /> {formData.startDate || 'YYYY-MM-DD'} • {formData.time}</span>
-                                    <span><FaMapMarkerAlt /> {formData.venue || formData.location || 'Coastal Location'}</span>
-                                </div>
-                                <p className="event-card-desc">
-                                    {formData.description ? formData.description.slice(0, 90) + '...' : 'Experience description preview will appear here.'}
-                                </p>
-                                <div className="event-card-footer">
-                                    <div className="event-price-block">
-                                        <span className="event-price-label">Passes from</span>
-                                        <span className="event-price-val">Ksh {Number(formData.price || 0).toLocaleString()}</span>
-                                    </div>
-                                    <button className="btn btn-primary" type="button" disabled>
-                                        <FaTicketAlt /> Book
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
