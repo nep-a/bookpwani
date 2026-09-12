@@ -136,11 +136,8 @@ const Navbar = () => {
                             {user.role === 'host' && (
                                 <>
                                     <Link to="/dashboard" className="nav-action-link">
-                                        <FaTachometerAlt />
+                                        <FaUserTie />
                                         <span>Dashboard</span>
-                                    </Link>
-                                    <Link to="/create-event" className="btn btn-primary btn-sm">
-                                        <FaPlus /> Post
                                     </Link>
                                 </>
                             )}
@@ -245,9 +242,6 @@ const Navbar = () => {
 
                                         {user.role === 'host' && (
                                             <>
-                                                <Link to="/create-event" className="mobile-nav-item highlight-btn" onClick={handleLinkClick}>
-                                                    <FaPlus /> Post Experience
-                                                </Link>
                                                 <Link to="/dashboard" className="mobile-nav-item" onClick={handleLinkClick}>
                                                     <FaUserTie /> Host Dashboard
                                                 </Link>
