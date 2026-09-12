@@ -99,6 +99,22 @@ const getEvents = async (req, res) => {
     }
 };
 
+const deleteEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { error } = await supabase
+            .from('events')
+            .delete()
+            .eq('id', id)
+            .eq('host_id', req.user.id);
+
+        if (error) throw error;
+        res.status(200).json({ message: 'Event deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting event', error: error.message });
+    }
+};
+
 const submitVerification = async (req, res) => {
     try {
         const { businessName, ownerId, staffPhone } = req.body;
@@ -179,4 +195,4 @@ const applyDiscount = async (req, res) => {
         res.status(500).json({ message: 'Error applying discount', error: error.message });
     }
 };
-module.exports = { updateProfile, createEvent, updateEvent, getEvents, submitVerification, getBookings, applyDiscount };
+module.exports = { updateProfile, createEvent, updateEvent, getEvents, deleteEvent, submitVerification, getBookings, applyDiscount };

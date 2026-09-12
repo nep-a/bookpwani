@@ -9,7 +9,8 @@ router.use(requireRole('host'));
 
 router.put('/profile', upload.single('profilePic'), hostController.updateProfile);
 router.post('/events', upload.single('eventImage'), hostController.createEvent);
-router.put('/events/:id', hostController.updateEvent);
+router.put('/events/:id', upload.single('eventImage'), hostController.updateEvent);
+router.delete('/events/:id', hostController.deleteEvent);
 router.get('/events', hostController.getEvents);
 router.post('/verify', upload.single('passportFile'), hostController.submitVerification);
 router.get('/bookings', hostController.getBookings);

@@ -6,13 +6,7 @@ import { eventService, COASTAL_CATEGORIES, COASTAL_DESTINATIONS } from '../servi
 import VerificationForm from '../components/VerificationForm';
 import { FaPlus, FaImage, FaCalendarAlt, FaMapMarkerAlt, FaTicketAlt, FaTag, FaFileAlt } from 'react-icons/fa';
 
-const PRESET_COASTAL_IMAGES = [
-    { label: 'Culture & Heritage', url: 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=1200&auto=format&fit=crop&q=80' },
-    { label: 'Swahili Food & Dhow', url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1200&auto=format&fit=crop&q=80' },
-    { label: 'Beachfront Stay & Villa', url: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&auto=format&fit=crop&q=80' },
-    { label: 'Beach & Watersports', url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&auto=format&fit=crop&q=80' },
-    { label: 'Coastal Safari & Bush', url: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1200&auto=format&fit=crop&q=80' }
-];
+
 
 const CreateEvent = () => {
     const { user } = useContext(AuthContext);
@@ -30,10 +24,11 @@ const CreateEvent = () => {
         time: '8:00 AM - 5:00 PM',
         price: '3500',
         capacity: '50',
-        image: PRESET_COASTAL_IMAGES[0].url,
         vipPrice: '7500',
         vipCapacity: '10'
     });
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
 
     const [loading, setLoading] = useState(false);
 
@@ -41,8 +36,12 @@ const CreateEvent = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSelectPreset = (url) => {
-        setFormData(prev => ({ ...prev, image: url }));
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -54,34 +53,40 @@ const CreateEvent = () => {
 
         setLoading(true);
         try {
-            const ticketTiers = [
-                {
-                    id: `tier_${Date.now()}_std`,
-                    name: 'Standard Experience Pass',
-                    price: Number(formData.price) || 3500,
-                    available: Number(formData.capacity) || 50,
-                    total: Number(formData.capacity) || 50,
-                    perks: ['Guided Coastal Tour', 'Equipment & Entry fees included']
+            const token = localStorage.getItem('token');
+            const submitData = new FormData();
+            submitData.append('title', formData.title);
+            submitData.append('description', formData.description);
+            submitData.append('price', formData.price);
+            submitData.append('date', formData.startDate);
+            submitData.append('venue', formData.venue);
+            submitData.append('time', formData.time);
+            submitData.append('category', formData.category);
+            submitData.append('capacity', formData.capacity);
+            submitData.append('vipPrice', formData.vipPrice);
+            submitData.append('vipCapacity', formData.vipCapacity);
+            if (imageFile) {
+                submitData.append('eventImage', imageFile);
+            }
+
+            const res = await fetch('http://localhost:5000/api/host/events', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 },
-                {
-                    id: `tier_${Date.now()}_vip`,
-                    name: 'VIP Private Experience',
-                    price: Number(formData.vipPrice) || (Number(formData.price) * 2),
-                    available: Number(formData.vipCapacity) || 10,
-                    total: Number(formData.vipCapacity) || 10,
-                    perks: ['Private Guide & Transport', 'Seafood Banquet Lunch', 'Complimentary Coconut Drink']
-                }
-            ];
+                body: submitData
+            });
 
-            await eventService.createEvent({
-                ...formData,
-                ticketTiers
-            }, user);
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || 'Failed to create event');
+            }
 
-            showNotification('🎉 Coastal experience published successfully!', 'success');
-            navigate('/');
+            showNotification('Coastal experience published successfully!', 'success');
+            navigate('/dashboard');
         } catch (error) {
-            showNotification(error.message || 'Failed to create experience', 'error');
+            console.error('Create experience error:', error);
+            showNotification('Failed to publish experience', 'error');
         } finally {
             setLoading(false);
         }
@@ -228,29 +233,14 @@ const CreateEvent = () => {
 
                         {/* Poster Image */}
                         <div className="form-group">
-                            <label><FaImage /> Banner / Poster Image URL</label>
+                            <label><FaImage /> Banner / Poster Image</label>
                             <input
+                                type="file"
                                 name="image"
-                                placeholder="Paste image link or choose coastal preset below"
-                                value={formData.image}
-                                onChange={handleChange}
+                                accept="image/*"
+                                onChange={handleImageChange}
                                 required
                             />
-                            <div className="preset-images-strip">
-                                <span style={{ fontSize: '0.8rem', color: '#718096' }}>Or pick a coastal photo preset:</span>
-                                <div className="preset-buttons-row">
-                                    {PRESET_COASTAL_IMAGES.map((preset, i) => (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            className={`preset-pill ${formData.image === preset.url ? 'active' : ''}`}
-                                            onClick={() => handleSelectPreset(preset.url)}
-                                        >
-                                            {preset.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
 
                         {/* Description */}
@@ -282,7 +272,7 @@ const CreateEvent = () => {
                         <div className="event-card glass-panel preview-mode">
                             <div className="event-card-media">
                                 <img
-                                    src={formData.image || PRESET_COASTAL_IMAGES[0].url}
+                                    src={imagePreview || 'https://via.placeholder.com/600x400?text=Upload+Image'}
                                     alt="Preview"
                                     className="event-card-img"
                                 />

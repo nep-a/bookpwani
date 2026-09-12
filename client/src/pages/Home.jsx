@@ -50,7 +50,7 @@ const FeaturedCarousel = ({ events, onBook, onSelectDetails }) => {
                     className="carousel-slide active" 
                     style={{ 
                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                        backgroundImage: `url(${event.image || ''})`,
+                        backgroundImage: `url(${event.image?.startsWith('http') ? event.image : 'http://localhost:5000/' + event.image})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         transition: 'opacity 0.5s ease-in-out'

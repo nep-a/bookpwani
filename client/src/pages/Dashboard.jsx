@@ -102,17 +102,18 @@ const Dashboard = () => {
                 const resEvents = await fetch('http://localhost:5000/api/host/events', { headers: { 'Authorization': `Bearer ${token}` }});
                 if (resEvents.ok) {
                     const data = await resEvents.json();
-                    hostEvents = data.events;
+                    hostEvents = data.events || [];
                 }
                 
                 const resBookings = await fetch('http://localhost:5000/api/host/bookings', { headers: { 'Authorization': `Bearer ${token}` }});
                 if (resBookings.ok) {
                     const data = await resBookings.json();
-                    hostBookings = data.bookings;
+                    hostBookings = data.bookings || [];
                 }
             } catch (err) {
-                hostEvents = await eventService.getHostEvents(user.id);
-                hostBookings = await eventService.getHostBookings(user.id);
+                console.error('Failed to fetch from backend:', err);
+                hostEvents = [];
+                hostBookings = [];
             }
 
             setEvents(hostEvents);
@@ -143,10 +144,17 @@ const Dashboard = () => {
     const handleDeleteEvent = async (id, title) => {
         if (!confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) return;
         try {
-            await eventService.deleteEvent(id);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`http://localhost:5000/api/host/events/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to delete');
+            
             showNotification('Event removed successfully', 'success');
             loadOrganizerData();
         } catch (error) {
+            console.error('Delete event error:', error);
             showNotification('Failed to delete event', 'error');
         }
     };
@@ -303,7 +311,7 @@ const Dashboard = () => {
                                                         <td style={{ padding: '12px' }}>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                                 <img
-                                                                    src={evt.image}
+                                                                    src={evt.image?.startsWith('http') ? evt.image : 'http://localhost:5000/' + evt.image}
                                                                     alt={evt.title}
                                                                     style={{ width: '45px', height: '45px', borderRadius: '8px', objectFit: 'cover' }}
                                                                 />

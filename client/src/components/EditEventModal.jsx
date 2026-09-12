@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaTimes, FaSave } from 'react-icons/fa';
-import { EVENT_CATEGORIES, eventService } from '../services/eventService';
+import { EVENT_CATEGORIES } from '../services/eventService';
 import { useNotification } from '../context/NotificationContext';
 
 const EditEventModal = ({ event, onClose, onUpdated }) => {
@@ -11,29 +11,59 @@ const EditEventModal = ({ event, onClose, onUpdated }) => {
         category: event.category || 'Music & Concerts',
         location: event.location || '',
         venue: event.venue || event.location || '',
-        startDate: event.startDate || '',
+        startDate: event.startDate || event.date || '',
         time: event.time || '',
-        price: event.price || '',
-        image: event.image || ''
+        price: event.price || ''
     });
+    const [imageFile, setImageFile] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await eventService.updateEvent(event.id, {
-                ...formData,
-                price: Number(formData.price)
+            const token = localStorage.getItem('token');
+            const submitData = new FormData();
+            submitData.append('title', formData.title);
+            submitData.append('description', formData.description);
+            submitData.append('price', formData.price);
+            submitData.append('date', formData.startDate);
+            submitData.append('venue', formData.venue);
+            submitData.append('time', formData.time);
+            submitData.append('category', formData.category);
+            if (imageFile) {
+                submitData.append('eventImage', imageFile);
+            }
+
+            const res = await fetch(`http://localhost:5000/api/host/events/${event.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: submitData
             });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || 'Failed to update event');
+            }
+
             showNotification('Event updated successfully!', 'success');
             if (onUpdated) onUpdated();
             onClose();
         } catch (error) {
+            console.error('Update event error:', error);
             showNotification(error.message || 'Failed to update event', 'error');
         } finally {
             setLoading(false);
@@ -121,12 +151,12 @@ const EditEventModal = ({ event, onClose, onUpdated }) => {
                     </div>
 
                     <div className="form-group">
-                        <label>Banner Image URL</label>
+                        <label>Banner Image (Upload new to replace)</label>
                         <input
+                            type="file"
                             name="image"
-                            placeholder="https://..."
-                            value={formData.image}
-                            onChange={handleChange}
+                            accept="image/*"
+                            onChange={handleImageChange}
                         />
                     </div>
 
