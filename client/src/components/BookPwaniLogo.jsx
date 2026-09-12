@@ -93,13 +93,13 @@ const BookPwaniLogo = ({ size = 'md', showText = true, className = '' }) => {
             {showText && (
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
                     <div style={{ fontSize: config.fontSize, fontWeight: 800, letterSpacing: '-0.5px' }}>
-                        <span style={{ color: '#0f172a' }}>Book</span>
+                        <span style={{ color: '#0f172a' }}>book</span>
                         <span style={{
                             background: 'linear-gradient(135deg, #0284c7 0%, #ff0050 100%)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent'
                         }}>
-                            bookpwani
+                            Pwani
                         </span>
                     </div>
                     <span style={{
