@@ -135,10 +135,6 @@ const Navbar = () => {
                             {/* Host links */}
                             {user.role === 'host' && (
                                 <>
-                                    <Link to="/my-bookings" className="nav-action-link">
-                                        <FaCalendarCheck />
-                                        <span>My Bookings</span>
-                                    </Link>
                                     <Link to="/dashboard" className="nav-action-link">
                                         <FaTachometerAlt />
                                         <span>Dashboard</span>
@@ -241,10 +237,11 @@ const Navbar = () => {
 
                                 {user ? (
                                     <>
-                                        {/* My Bookings — available to all logged-in roles */}
-                                        <Link to="/my-bookings" className="mobile-nav-item" onClick={handleLinkClick}>
-                                            <FaCalendarCheck /> My Bookings
-                                        </Link>
+                                        {user.role === 'traveler' && (
+                                            <Link to="/my-bookings" className="mobile-nav-item" onClick={handleLinkClick}>
+                                                <FaCalendarCheck /> My Bookings
+                                            </Link>
+                                        )}
 
                                         {user.role === 'host' && (
                                             <>
