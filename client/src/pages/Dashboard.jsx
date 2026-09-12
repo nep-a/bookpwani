@@ -171,7 +171,7 @@ const Dashboard = () => {
             <div className="dashboard-header-row">
                 <div>
                     <h2>Host Dashboard</h2>
-                    <p style={{ color: '#718096' }}>Manage your experiences, track sales, and connect with attendees.</p>
+                    <p style={{ color: '#718096' }}>Manage your experiences and track ticket sales.</p>
                 </div>
                 <Link to="/create-event" className="btn btn-primary">
                     <FaPlus /> Create New Event
@@ -234,12 +234,6 @@ const Dashboard = () => {
                     >
                         My Events
                     </button>
-                    <button
-                        className={`dashboard-tab ${activeTab === 'bookings' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('bookings')}
-                    >
-                        Recent Bookings
-                    </button>
                 </div>
 
                 {/* Tab Content */}
@@ -248,15 +242,12 @@ const Dashboard = () => {
                         <div className="overview-tab">
                             <h3>Welcome back, {user.username}!</h3>
                             <p style={{ marginTop: '10px', color: '#4a5568', lineHeight: '1.6' }}>
-                                Your dashboard gives you a complete overview of your hosting operations. Navigate to <strong>My Events</strong> to manage your listings, edit details, or check ticket availability. Navigate to <strong>Recent Bookings</strong> to view attendee lists and verify payments.
+                                Your dashboard gives you a complete overview of your hosting operations. Navigate to <strong>My Events</strong> to manage your listings, edit details, or check ticket availability.
                             </p>
                             
                             <div style={{ marginTop: '30px', display: 'flex', gap: '15px' }}>
                                 <button className="btn btn-secondary" onClick={() => setActiveTab('events')}>
                                     <FaEye /> View My Events
-                                </button>
-                                <button className="btn btn-secondary" onClick={() => setActiveTab('bookings')}>
-                                    <FaUsers /> View Attendees
                                 </button>
                             </div>
                         </div>
@@ -369,62 +360,6 @@ const Dashboard = () => {
                                                                     <FaTrash />
                                                                 </button>
                                                             </div>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {activeTab === 'bookings' && (
-                        <div className="bookings-tab">
-                            <h3>Recent Bookings (Attendees)</h3>
-                            {bookings.length === 0 ? (
-                                <p style={{ marginTop: '15px', color: '#718096' }}>No tickets have been sold yet.</p>
-                            ) : (
-                                <div className="table-container" style={{ marginTop: '15px' }}>
-                                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                        <thead>
-                                            <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--glass-border)' }}>
-                                                <th style={{ padding: '12px' }}>Attendee</th>
-                                                <th style={{ padding: '12px' }}>Event</th>
-                                                <th style={{ padding: '12px' }}>Tier</th>
-                                                <th style={{ padding: '12px' }}>Qty</th>
-                                                <th style={{ padding: '12px' }}>Total Paid</th>
-                                                <th style={{ padding: '12px' }}>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {bookings.map(booking => {
-                                                const evtData = booking.event || events.find(e => e.id === booking.event_id) || {};
-                                                return (
-                                                    <tr key={booking.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                                                        <td style={{ padding: '12px' }}>
-                                                            <strong>{booking.attendeeName || 'Traveler'}</strong>
-                                                            <div style={{ fontSize: '0.8rem', color: '#718096' }}>{booking.attendeeEmail || booking.attendeePhone || ''}</div>
-                                                        </td>
-                                                        <td style={{ padding: '12px', fontSize: '0.9rem' }}>
-                                                            {evtData.title || booking.eventTitle || 'Unknown Event'}
-                                                        </td>
-                                                        <td style={{ padding: '12px', fontSize: '0.9rem' }}>
-                                                            <span className="badge" style={{ background: '#edf2f7', color: '#2d3748' }}>
-                                                                {booking.ticket_tier_name || booking.ticketTierName || 'General'}
-                                                            </span>
-                                                        </td>
-                                                        <td style={{ padding: '12px', fontWeight: 'bold' }}>
-                                                            {booking.tickets_count || booking.quantity}
-                                                        </td>
-                                                        <td style={{ padding: '12px', color: 'var(--primary-color)', fontWeight: 'bold' }}>
-                                                            Ksh {Number(booking.total_price || booking.totalPrice).toLocaleString()}
-                                                        </td>
-                                                        <td style={{ padding: '12px' }}>
-                                                            <span style={{ color: booking.status === 'confirmed' ? '#38a169' : '#e53e3e', fontWeight: '600', fontSize: '0.85rem', textTransform: 'capitalize' }}>
-                                                                {booking.status}
-                                                            </span>
                                                         </td>
                                                     </tr>
                                                 );
